@@ -1,0 +1,72 @@
+[
+  {
+    "id": 1,
+    "name": "Core Banking API Server (SRV-PROD-CB01)",
+    "type": "APPLICATION_SERVER",
+    "criticality": "TIER_1_CRITICAL",
+    "ip_address": "10.100.4.15",
+    "operating_system": "Ubuntu 22.04 LTS",
+    "provider_id": 1,
+    "description": "Primary Java-based REST backend hosting high-volume financial accounting and ledger services."
+  },
+  {
+    "id": 2,
+    "name": "Customer Mobile API Gateway (GW-PROD-MOB01)",
+    "type": "API_GATEWAY",
+    "criticality": "TIER_1_CRITICAL",
+    "ip_address": "10.100.4.20",
+    "operating_system": "Alpine Linux 3.19",
+    "provider_id": 1,
+    "description": "Public-facing reverse proxy and OAuth2 token authorization point for mobile app clients."
+  },
+  {
+    "id": 3,
+    "name": "SWIFT Transaction Gateway (SRV-SWIFT-01)",
+    "type": "FINANCIAL_COMMUNICATION",
+    "criticality": "TIER_1_CRITICAL",
+    "ip_address": "10.100.8.50",
+    "operating_system": "Red Hat Enterprise Linux 9.2",
+    "provider_id": 2,
+    "description": "Encrypted financial messaging gateway interfacing with SWIFT Alliance Access."
+  },
+  {
+    "id": 4,
+    "name": "Customer Self-Service Web Portal (SRV-WEB-PORTAL)",
+    "type": "WEB_SERVER",
+    "criticality": "TIER_2_HIGH",
+    "ip_address": "10.100.12.10",
+    "operating_system": "Debian 12 Bookworm",
+    "provider_id": 1,
+    "description": "Web SPA host server serving public online retail banking."
+  },
+  {
+    "id": 5,
+    "name": "Perimeter Enterprise Firewall (FW-BORDER-A)",
+    "type": "NETWORK_DEVICE",
+    "criticality": "TIER_1_CRITICAL",
+    "ip_address": "194.224.88.1",
+    "operating_system": "PAN-OS / FortiOS",
+    "provider_id": 3,
+    "description": "Edge border firewall and IPsec VPN gateway for employee and vendor access."
+  },
+  {
+    "id": 6,
+    "name": "CI/CD & DevOps Automation Node (SRV-BUILD-01)",
+    "type": "BUILD_SERVER",
+    "criticality": "TIER_3_OPERATIONAL",
+    "ip_address": "10.100.20.100",
+    "operating_system": "Ubuntu 24.04 LTS",
+    "provider_id": 4,
+    "description": "Automated pipeline runner for container builds, automated unit tests, and artifact publishing."
+  },
+  {
+    "id": 7,
+    "name": "Central Identity Active Directory (DC-CORP-01)",
+    "type": "IDENTITY_PROVIDER",
+    "criticality": "TIER_1_CRITICAL",
+    "ip_address": "10.100.2.10",
+    "operating_system": "Windows Server 2022 Datacenter",
+    "provider_id": 4,
+    "description": "Corporate domain controller handling LDAP, Kerberos, and internal employee authentication."
+  }
+]

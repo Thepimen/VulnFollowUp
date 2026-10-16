@@ -1,0 +1,134 @@
+# ==========================================
+# VulnFollowUp - Monorepo Git Ignore
+# Covers: Java (Maven/Gradle), Frontend (Node/SPA),
+# Android (Gradle/SDK), Databases, IDEs & OS files
+# ==========================================
+
+# ------------------------------------------
+# Operating System & Cache Files
+# ------------------------------------------
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+*.tmp
+*.bak
+*.swp
+*~
+
+# ------------------------------------------
+# Environment & Sensitive Credentials
+# ------------------------------------------
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+*.pem
+*.key
+*.cert
+*.pfx
+*.jks
+*.keystore
+
+# ------------------------------------------
+# IDEs and Editors
+# ------------------------------------------
+# IntelliJ IDEA
+.idea/
+*.iws
+*.iml
+*.ipr
+out/
+
+# Eclipse
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings/
+.springBeans
+
+# NetBeans
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.built-jar.properties
+
+# Visual Studio Code
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+.history/
+
+# ------------------------------------------
+# Java & JVM Compiled Artifacts
+# ------------------------------------------
+*.class
+*.log
+*.ctxt
+hs_err_pid*
+replay_pid*
+
+# Maven
+backend/target/
+target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+buildNumber.properties
+.mvn/timing.properties
+.mvn/wrapper/maven-wrapper.jar
+
+# Gradle
+.gradle/
+build/
+backend/build/
+android-app/build/
+!gradle/wrapper/gradle-wrapper.jar
+
+# ------------------------------------------
+# Node.js & Frontend (desktop-client)
+# ------------------------------------------
+desktop-client/node_modules/
+node_modules/
+desktop-client/dist/
+desktop-client/build/
+dist/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+.eslintcache
+.stylelintcache
+
+# ------------------------------------------
+# Android (android-app)
+# ------------------------------------------
+android-app/local.properties
+local.properties
+android-app/.cxx/
+android-app/captures/
+*.apk
+*.ap_
+*.aab
+output-metadata.json
+.navigation/
+
+# ------------------------------------------
+# Database Local Storage & Temp Files
+# ------------------------------------------
+*.sqlite3-journal
+database/data/
+database/backups/
+*.db-journal

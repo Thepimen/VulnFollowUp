@@ -1,0 +1,46 @@
+[
+  {
+    "id": 1,
+    "company_name": "CloudScale European Infrastructure S.A.",
+    "service_type": "CLOUD_INFRASTRUCTURE_IAAS",
+    "dora_criticality": "CRITICAL_THIRD_PARTY",
+    "country_code": "ES",
+    "contact_email": "dora-compliance@cloudscale-eu.com",
+    "sla_availability_pct": 99.99,
+    "contract_status": "ACTIVE",
+    "audit_passed_date": "2024-03-15"
+  },
+  {
+    "id": 2,
+    "company_name": "SwiftFin Interbank Connectivity BV",
+    "service_type": "FINANCIAL_MESSAGING_SAAS",
+    "dora_criticality": "CRITICAL_THIRD_PARTY",
+    "country_code": "BE",
+    "contact_email": "security-ops@swiftfin-interbank.eu",
+    "sla_availability_pct": 99.999,
+    "contract_status": "ACTIVE",
+    "audit_passed_date": "2024-05-10"
+  },
+  {
+    "id": 3,
+    "company_name": "CyberShield Managed SOC & Edge Networks",
+    "service_type": "MANAGED_SECURITY_MSSP",
+    "dora_criticality": "CRITICAL_THIRD_PARTY",
+    "country_code": "DE",
+    "contact_email": "soc-leads@cybershield-security.de",
+    "sla_availability_pct": 99.95,
+    "contract_status": "ACTIVE",
+    "audit_passed_date": "2024-01-20"
+  },
+  {
+    "id": 4,
+    "company_name": "DevOpsForge Tooling & Identity Solutions Ltd",
+    "service_type": "ENTERPRISE_SOFTWARE_VENDOR",
+    "dora_criticality": "STANDARD_THIRD_PARTY",
+    "country_code": "IE",
+    "contact_email": "support@devopsforge-tools.com",
+    "sla_availability_pct": 99.9,
+    "contract_status": "ACTIVE",
+    "audit_passed_date": "2023-11-05"
+  }
+]
