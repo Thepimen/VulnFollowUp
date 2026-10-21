@@ -1,0 +1,104 @@
+{
+  "data/assets_seed.json": {
+    "mtime": 1792135216.107526,
+    "seen": 1792569452.9337058,
+    "ast_hash": "fdbb30e9cd8d4e64ca532886fc0092c2",
+    "semantic_hash": "fdbb30e9cd8d4e64ca532886fc0092c2"
+  },
+  "data/providers_seed.json": {
+    "mtime": 1792135247.2146645,
+    "seen": 1792569452.933717,
+    "ast_hash": "74d8ae2d757be7bb78734e433ac4c7f6",
+    "semantic_hash": "74d8ae2d757be7bb78734e433ac4c7f6"
+  },
+  "data/vulnerabilities_seed.json": {
+    "mtime": 1792135198.601486,
+    "seen": 1792569452.9337218,
+    "ast_hash": "56f30f8c2eebfd79772cc17ad6f58b75",
+    "semantic_hash": "56f30f8c2eebfd79772cc17ad6f58b75"
+  },
+  "GEMINI.md": {
+    "mtime": 1792569355.0821662,
+    "seen": 1792569452.9337244,
+    "ast_hash": "2245e27bbaa5988e750da240b1699890",
+    "semantic_hash": "2245e27bbaa5988e750da240b1699890"
+  },
+  "PROJECT_CONTEXT.md": {
+    "mtime": 1792135456.7193084,
+    "seen": 1792569452.933727,
+    "ast_hash": "7016522dfd89c823c3d23b0ba4ac988f",
+    "semantic_hash": "7016522dfd89c823c3d23b0ba4ac988f"
+  },
+  "README.md": {
+    "mtime": 1792135425.6169386,
+    "seen": 1792569452.9337292,
+    "ast_hash": "865c68ef30506d7baf70552b2018b546",
+    "semantic_hash": "865c68ef30506d7baf70552b2018b546"
+  },
+  "android-app/README.md": {
+    "mtime": 1792135130.8123553,
+    "seen": 1792569452.9337318,
+    "ast_hash": "b2e1a6d0ebf9f1a292a2438ab557d1fb",
+    "semantic_hash": "b2e1a6d0ebf9f1a292a2438ab557d1fb"
+  },
+  "backend/README.md": {
+    "mtime": 1792135107.3407815,
+    "seen": 1792569452.9337337,
+    "ast_hash": "9dcb2ae6a8fe14a713ff981f3b4638ea",
+    "semantic_hash": "9dcb2ae6a8fe14a713ff981f3b4638ea"
+  },
+  "data/README.md": {
+    "mtime": 1792135155.5830507,
+    "seen": 1792569452.9337358,
+    "ast_hash": "c4f9702efd30e462f438a2a2d2d7b725",
+    "semantic_hash": "c4f9702efd30e462f438a2a2d2d7b725"
+  },
+  "database/README.md": {
+    "mtime": 1792135143.445792,
+    "seen": 1792569452.933738,
+    "ast_hash": "934c2b60af632d9977c96e198aa31dff",
+    "semantic_hash": "934c2b60af632d9977c96e198aa31dff"
+  },
+  "desktop-client/README.md": {
+    "mtime": 1792135118.6531851,
+    "seen": 1792569452.9337404,
+    "ast_hash": "ed012658fa7c3ca455a600699cf770ac",
+    "semantic_hash": "ed012658fa7c3ca455a600699cf770ac"
+  },
+  "docs/api/README.md": {
+    "mtime": 1792135268.8400078,
+    "seen": 1792569452.9337425,
+    "ast_hash": "5488aee2f264ae1a6103cb4bc75c47f9",
+    "semantic_hash": "5488aee2f264ae1a6103cb4bc75c47f9"
+  },
+  "docs/digitalizacion/README.md": {
+    "mtime": 1792135362.9214113,
+    "seen": 1792569452.9337444,
+    "ast_hash": "ab85f92b2e25c78348ee0830317178cf",
+    "semantic_hash": "ab85f92b2e25c78348ee0830317178cf"
+  },
+  "docs/english/README.md": {
+    "mtime": 1792135305.6042747,
+    "seen": 1792569452.933746,
+    "ast_hash": "d0ab6e17506dfc2cab19f890b9373b11",
+    "semantic_hash": "d0ab6e17506dfc2cab19f890b9373b11"
+  },
+  "docs/ipe/README.md": {
+    "mtime": 1792135335.9418259,
+    "seen": 1792569452.9337482,
+    "ast_hash": "a5f25a5a6a093b5cde69b740cec39dbd",
+    "semantic_hash": "a5f25a5a6a093b5cde69b740cec39dbd"
+  },
+  "docs/sge/README.md": {
+    "mtime": 1792135349.9983146,
+    "seen": 1792569452.93375,
+    "ast_hash": "471a691be9ef9a53bc47a7cca67b1e5f",
+    "semantic_hash": "471a691be9ef9a53bc47a7cca67b1e5f"
+  },
+  "docs/sostenibilidad/README.md": {
+    "mtime": 1792135394.0050797,
+    "seen": 1792569452.933752,
+    "ast_hash": "656ae84d2ff125ed4f92f6a5af0e72c5",
+    "semantic_hash": "656ae84d2ff125ed4f92f6a5af0e72c5"
+  }
+}
