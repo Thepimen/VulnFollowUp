@@ -1,52 +1,29 @@
 # Backend Service - VulnFollowUp API
 
-RESTful API backend for **VulnFollowUp**, responsible for business logic, persistence, and external orchestration under the EU **Digital Operational Resilience Act (DORA)** regulatory framework.
+Backend desarrollado en **Java 21** con **Spring Boot 3** y **Spring Data JPA / Hibernate** para el proyecto intermodular **VulnFollowUp** (2.º DAM).
 
 ---
 
-## Technical Scope & DAM Modules
+## Qué se ha implementado en esta parte del Backend (JPA / Hibernate)
 
-- **Acceso a Datos (AD)**:
-  - Relational mapping, DAO/Repository patterns, transactional integrity.
-  - CRUD operations on IT Assets, Vulnerabilities, Assessments, and ICT Third-Party Providers.
-  - Complex queries (N:M relationship: Vulnerabilities $\leftrightarrow$ Assets).
-- **Programación de Servicios y Procesos (PSP)**:
-  - **Concurrency & Critical Sections**: Thread-safe access to shared in-memory caches and counters with automated race-condition tests.
-  - **Asynchronous Workloads (`ExecutorService`)**: Background ingestion of large vulnerability datasets (CVE JSON feeds) and asynchronous report compilation.
-  - **Process Orchestration (`ProcessBuilder`)**: Execution of isolated external system utilities to generate sanitized export reports (CSV/HTML/PDF).
-- **Sistemas de Gestión Empresarial (SGE)**:
-  - DORA Chapter V compliance: Monitoring and risk scoring of Critical Third-Party ICT Providers tied to business-critical IT assets.
+1. **Entidades JPA mapeadas al esquema SQL existente (`com.vulnfollowup.model`)**:
+   - `TicProvider`: representa a los proveedores tecnológicos externos bajo la normativa europea DORA (módulo SGE), mapeado a la tabla `"IT_Provider"` y conectado en relación `1:N` con los activos.
+   - `Asset`: representa cada activo tecnológico de la empresa (tabla `"Asset"`), conectado con su proveedor TIC (`@ManyToOne`) y con las vulnerabilidades que le afectan (`@ManyToMany`).
+   - `Vulnerability`: entidad principal del proyecto (tabla `"Vulnerability"`). Es propietaria de la relación `N:M` con los activos mediante la tabla intermedia `"Asset_Vulnerability"` (`@JoinTable`) y se relaciona `1:1` con su evaluación CVSS.
+   - `CvssAssessment`: almacena el cálculo CVSS v3.1 o v4.0 (vector, puntuación de 0.0 a 10.0, severidad y fecha) en la tabla `"CVSS_Assessment"`.
 
----
+2. **Control de concurrencia optimista (PSP)**:
+   - Se ha incluido el campo `@Version private Long version;` en `Vulnerability` para evitar condiciones de carrera y pérdidas de actualización (*lost updates*) si dos analistas editan la misma vulnerabilidad al mismo tiempo.
 
-## Architecture Layers
+3. **Rendimiento y carga perezosa (`FetchType.LAZY`)**:
+   - Todas las relaciones (`@ManyToOne`, `@OneToMany`, `@ManyToMany` y `@OneToOne`) están configuradas en `LAZY` para evitar el problema de rendimiento `N+1`.
 
-```
-backend/
-├── src/
-│   ├── main/
-│   │   ├── java/com/vulnfollowup/
-│   │   │   ├── config/          # Security, concurrency thread pools, database configuration
-│   │   │   ├── controller/      # REST Endpoints (Auth, Assets, Vulnerabilities, Providers)
-│   │   │   ├── service/         # Business logic, CVSS calculators, concurrency handlers
-│   │   │   ├── repository/      # Data access layer (DAO / JPA Repositories)
-│   │   │   ├── model/           # Entities (Vulnerability, Asset, Provider, User)
-│   │   │   ├── dto/             # Data Transfer Objects & validation schemas
-│   │   │   └── process/         # ProcessBuilder runners for report generation
-│   │   └── resources/
-│   │       ├── application.properties
-│   │       └── scripts/         # External scripts invoked via ProcessBuilder
-│   └── test/
-│       └── java/com/vulnfollowup/
-│           ├── concurrency/     # Race condition & multi-thread stress tests
-│           └── service/         # Unit and integration tests
-└── pom.xml (or build.gradle)
-```
+4. **Enumerados y Convertidores JPA (`com.vulnfollowup.model.enums` y `converter`)**:
+   - Uso de `VulnerabilityStatus`, `CvssSeverity`, `CvssVersion` y `ProviderCriticality` junto con `AttributeConverter` para trabajar en Java con los nombres del dominio y guardarlos con el formato exacto del SQL.
 
----
+5. **Repositorios Spring Data JPA (`com.vulnfollowup.repository`)**:
+   - `VulnerabilityRepository`: búsqueda por `cveOrInternalId`, filtrado por `status` (también con soporte de paginación `Pageable`) y consulta JPQL con `JOIN FETCH` para listar las vulnerabilidades pendientes de un proveedor TIC concreto.
+   - `AssetRepository`, `TicProviderRepository` y `CvssAssessmentRepository`: operaciones CRUD estándar y filtros auxiliares.
 
-## Authentication & Authorization
-
-- **RBAC Roles**: `ADMIN`, `ANALYST`, `VIEWER`.
-- **Security Standard**: Passwords hashed with cryptographic salt (BCrypt / Argon2).
-- **Session Management**: JWT (JSON Web Tokens) or secure bearer tokens.
+6. **Configuración segura de base de datos (`application.properties`)**:
+   - Configurado con `spring.jpa.hibernate.ddl-auto=validate` y `PhysicalNamingStrategyStandardImpl` para validar el esquema real de la base de datos sin modificar ni borrar ninguna tabla.
