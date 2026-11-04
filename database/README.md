@@ -1,43 +1,38 @@
-# Database Architecture & Scripts - VulnFollowUp
+# Database Architecture & Scripts — VulnFollowUp
 
-Relational database design, DDL scripts, initialization seed files, and Entity-Relationship model documentation for **VulnFollowUp**.
-
----
-
-## Technical Scope & DAM Modules
-
-- **Acceso a Datos (AD)**:
-  - Relational schema normalization (3NF) protecting referential integrity.
-  - Foreign key constraints with appropriate deletion/update cascades.
-  - Efficient indexing on query-intensive columns (CVSS score, vulnerability status, vendor criticality, asset identifier).
-  - Many-to-Many (`N:M`) mapping table connecting Vulnerabilities and IT Assets.
-  - Third-party ICT Vendor mapping connecting service providers to managed IT assets under DORA Chapter V rules.
+Relational database design (PostgreSQL 15+), 3NF DDL scripts, seed datasets, and Entity-Relationship documentation for **VulnFollowUp**.
 
 ---
 
-## Directory Contents
+## Directory Structure
 
-```
+```text
 database/
-├── ddl/
-│   ├── 01_create_tables.sql       # DDL schema (Users, Assets, Providers, Vulnerabilities, Joins)
-│   └── 02_create_indexes.sql      # Performance and search indexes
-├── dml/
-│   ├── 01_seed_initial_data.sql   # Initial bootstrap data (Admin user, sample assets, providers)
-│   └── 02_seed_vulnerabilities.sql# Populated synthetic vulnerabilities (CVSS v3.1 and v4.0)
-├── er-diagram/
-│   ├── er_diagram.png             # Visual rendering of the Entity-Relationship model
-│   └── er_diagram.mermaid         # Mermaid source code of the schema
+├── schema/
+│   └── 01_schema.sql                  # Canonical 3NF DDL schema, CHECK constraints & composite indexes
+├── seed/
+│   └── 02_seed_data.sql               # 20 realistic vulnerabilities (incl. VFU-0012 + HostingSur S.L.), users, assets, audits
+├── er-diagram.md                      # Mermaid Entity-Relationship diagram synchronized 100% with 01_schema.sql
+├── database1-schema.sql               # Initial iteration by Developer A
+├── database2-schema.sql               # Second PostgreSQL iteration by Developer A (links to schema/01_schema.sql)
+├── database-entity-relationship.png   # Initial visual E-R diagram (Developer A)
+├── database-desing2.png               # Second visual E-R diagram (Developer A)
 └── README.md
 ```
 
 ---
 
-## Core Entities & Relational Map
+## QA Database Audit Summary (Developer B Review on Developer A's Commits)
 
-- `users` (`id`, `username`, `password_hash`, `salt`, `role`, `created_at`)
-- `assets` (`id`, `name`, `type`, `criticality`, `ip_address`, `provider_id`, `created_at`)
-- `ict_providers` (`id`, `company_name`, `service_type`, `dora_criticality`, `contact_email`)
-- `vulnerabilities` (`id`, `cve_id`, `title`, `description`, `cvss_version`, `cvss_vector`, `cvss_score`, `severity`, `status`, `remediation_plan`, `created_at`, `updated_at`)
-- `vulnerability_assets` (`vulnerability_id`, `asset_id`, `detected_at`, `notes`) -> **N:M**
-- `status_history` (`id`, `vulnerability_id`, `previous_status`, `new_status`, `changed_by_user_id`, `change_reason`, `timestamp`)
+1. **3NF Normalization & Naming Standardization**:
+   - Standardized all 8 tables in snake_case (`users`, `ict_providers`, `assets`, `vulnerabilities`, `vulnerability_assets`, `cvss_assessments`, `remediation_comments`, `audit_logs`), avoiding reserved SQL keyword collisions (`"User"`).
+   - Added explicit `password_salt` alongside `password_hash` (`CHECK` enforcing salted BCrypt `$2a$`/`$2b$` or `$argon2id$` hashes).
+   - Added `internal_code` (`VFU-0001` format) alongside `cve_id` in `vulnerabilities`.
+   - Separated follow-up notes (`remediation_comments`) from immutable state/security audit logs (`audit_logs`).
+2. **Lifecycle & CVSS Base v3.1/v4.0 `CHECK` Constraints**:
+   - Enforced the 4 official lifecycle states: `'ABIERTA'`, `'PENDIENTE DE REMEDIACIÓN'`, `'RESUELTA'`, `'CERRADA'`.
+   - Enforced strict vector prefix and regular expression validation matching `cvss_version` (`3.1` vs `4.0`) and FIRST score-to-severity coherence (`0.0 = NONE`, `0.1–3.9 = LOW`, `4.0–6.9 = MEDIUM`, `7.0–8.9 = HIGH`, `9.0–10.0 = CRITICAL`).
+3. **Green Software Composite Indexes**:
+   - Added 8 composite indexes (`idx_vuln_status_severity_score`, `idx_vuln_assigned_status`, `idx_vuln_discovered_pagination`, `idx_assets_provider_criticality`, etc.) to accelerate multi-filter paginated queries.
+4. **Mandatory SGE Case (`HostingSur S.L.` + `API de pagos` + `VFU-0012`)**:
+   - Seeded in [`seed/02_seed_data.sql`](file:///c:/Users/luisl/OneDrive/Escritorio/Programacion%20y%20proyectos/VulnFollowUp/database/seed/02_seed_data.sql) and [`data/`](file:///c:/Users/luisl/OneDrive/Escritorio/Programacion%20y%20proyectos/VulnFollowUp/data/README.md).
