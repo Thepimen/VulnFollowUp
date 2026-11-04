@@ -2,60 +2,72 @@
   {
     "id": 1,
     "internal_code": "VFU-0001",
-    "cve_id": "CVE-2024-21413",
-    "title": "Microsoft Outlook Remote Code Execution Vulnerability (Moniker Link)",
-    "description": "An attacker could bypass Office Protected View and execute arbitrary code via a specially crafted mail containing a malicious moniker link.",
+    "cve_id": "CVE-2026-90001",
+    "title": "Insecure deserialization in notification service allows remote code execution",
+    "description": "The notification service deserializes untrusted payloads from crafted operator documents without type filtering, allowing an attacker to run arbitrary code once the document is opened.",
     "cvss_version": "3.1",
-    "cvss_vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:C/C:H/I:H/A:H",
-    "cvss_score": 9.8,
-    "severity": "CRITICAL",
+    "cvss_vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:U/C:H/I:H/A:H",
+    "cvss_score": 8.8,
+    "severity": "HIGH",
     "status": "ABIERTA",
     "assigned_to": 2,
     "discovered_at": "2026-01-12",
     "target_remediation_date": "2026-01-20",
-    "remediation_plan": "Deploy Microsoft security bulletin KB5035349 to all workstation and mail relay endpoints.",
-    "affected_asset_ids": [1, 4]
+    "resolved_at": null,
+    "remediation_plan": "Enable a deserialization allow-list and upgrade the notification module to the patched release.",
+    "affected_asset_ids": [
+      1,
+      4
+    ]
   },
   {
     "id": 2,
     "internal_code": "VFU-0002",
-    "cve_id": "CVE-2024-3400",
-    "title": "Palo Alto Networks PAN-OS Command Injection in GlobalProtect Gateway",
-    "description": "A command injection vulnerability in the GlobalProtect feature of Palo Alto Networks PAN-OS software allows an unauthenticated attacker to execute arbitrary code with root privileges.",
+    "cve_id": "CVE-2026-90002",
+    "title": "Unauthenticated command injection in perimeter firewall VPN portal",
+    "description": "A command injection flaw in the VPN portal of the perimeter firewall lets an unauthenticated remote attacker execute operating system commands with root privileges.",
     "cvss_version": "3.1",
     "cvss_vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:C/C:H/I:H/A:H",
-    "cvss_score": 10.0,
+    "cvss_score": 10,
     "severity": "CRITICAL",
     "status": "PENDIENTE DE REMEDIACIÓN",
     "assigned_to": 2,
     "discovered_at": "2026-01-15",
     "target_remediation_date": "2026-01-18",
-    "remediation_plan": "Upgrade PAN-OS to 11.1.2-h3 and apply threat prevention signature 95187.",
-    "affected_asset_ids": [5]
+    "resolved_at": null,
+    "remediation_plan": "Upgrade the firewall firmware to the fixed release and enable the vendor threat-prevention signature.",
+    "affected_asset_ids": [
+      5
+    ]
   },
   {
     "id": 3,
     "internal_code": "VFU-0003",
-    "cve_id": "CVE-2024-6387",
-    "title": "OpenSSH regreSSHion Signal Handler Race Condition Remote Code Execution",
-    "description": "A signal handler race condition in OpenSSH server (sshd) allows unauthenticated remote code execution as root on glibc-based Linux systems.",
+    "cve_id": "CVE-2026-90003",
+    "title": "Signal handler race condition in SSH daemon enables remote root code execution",
+    "description": "A race condition in the signal handler of the SSH daemon allows unauthenticated remote code execution as root on glibc-based Linux systems.",
     "cvss_version": "4.0",
     "cvss_vector": "CVSS:4.0/AV:N/AC:H/AT:N/PR:N/UI:N/VC:H/VI:H/VA:H/SC:N/SI:N/SA:N",
-    "cvss_score": 8.1,
-    "severity": "HIGH",
+    "cvss_score": 9.2,
+    "severity": "CRITICAL",
     "status": "ABIERTA",
     "assigned_to": 3,
     "discovered_at": "2026-01-18",
     "target_remediation_date": "2026-02-01",
-    "remediation_plan": "Update openssh-server to version 9.8p1 or set LoginGraceTime to 0 in sshd_config.",
-    "affected_asset_ids": [1, 2, 3]
+    "resolved_at": null,
+    "remediation_plan": "Update the SSH server package to the fixed version or set LoginGraceTime to 0 as a temporary mitigation.",
+    "affected_asset_ids": [
+      1,
+      2,
+      3
+    ]
   },
   {
     "id": 4,
     "internal_code": "VFU-0004",
-    "cve_id": "CVE-2023-44487",
-    "title": "HTTP/2 Rapid Reset Denial of Service Vulnerability",
-    "description": "The HTTP/2 protocol allows a client to reset rapid consecutive streams using RST_STREAM frames, overwhelming web servers and causing severe DoS.",
+    "cve_id": "CVE-2026-90004",
+    "title": "Rapid stream reset flood causes denial of service in HTTP/2 reverse proxy",
+    "description": "The HTTP/2 implementation accepts rapid consecutive stream resets from a client, exhausting worker resources and causing a denial of service.",
     "cvss_version": "3.1",
     "cvss_vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H",
     "cvss_score": 7.5,
@@ -64,15 +76,20 @@
     "assigned_to": 2,
     "discovered_at": "2026-01-20",
     "target_remediation_date": "2026-02-05",
+    "resolved_at": "2026-02-03T14:30:00+01:00",
     "remediation_plan": "Configure HTTP/2 stream rate-limiting in reverse proxies and patch load balancers.",
-    "affected_asset_ids": [2, 4, 8]
+    "affected_asset_ids": [
+      2,
+      4,
+      8
+    ]
   },
   {
     "id": 5,
     "internal_code": "VFU-0005",
-    "cve_id": "CVE-2024-23897",
-    "title": "Jenkins CLI Arbitrary File Read Vulnerability",
-    "description": "Jenkins uses args4j parser in CLI commands which replaces '@' followed by a file path with file contents, allowing unauthenticated attackers to read arbitrary server files.",
+    "cve_id": "CVE-2026-90005",
+    "title": "Arbitrary file read through argument expansion in CI server command line interface",
+    "description": "The command line interface of the CI server expands file references in arguments, allowing unauthenticated attackers to read arbitrary files from the server.",
     "cvss_version": "3.1",
     "cvss_vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N",
     "cvss_score": 7.5,
@@ -81,15 +98,18 @@
     "assigned_to": 3,
     "discovered_at": "2026-01-22",
     "target_remediation_date": "2026-02-02",
-    "remediation_plan": "Upgrade Jenkins core to 2.442 and disable unauthenticated Jenkins CLI access.",
-    "affected_asset_ids": [6]
+    "resolved_at": "2026-01-29T11:15:00+01:00",
+    "remediation_plan": "Upgrade the CI server core to the fixed version and disable unauthenticated command line access.",
+    "affected_asset_ids": [
+      6
+    ]
   },
   {
     "id": 6,
     "internal_code": "VFU-0006",
-    "cve_id": "CVE-2024-27198",
-    "title": "JetBrains TeamCity Authentication Bypass Vulnerability",
-    "description": "An authentication bypass in TeamCity web server enables unauthenticated remote attackers to perform administrative actions and achieve RCE.",
+    "cve_id": "CVE-2026-90006",
+    "title": "Authentication bypass in CI server web console grants administrative access",
+    "description": "An authentication bypass in the web console of the CI server enables unauthenticated remote attackers to perform administrative actions and achieve code execution.",
     "cvss_version": "3.1",
     "cvss_vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
     "cvss_score": 9.8,
@@ -98,32 +118,38 @@
     "assigned_to": 2,
     "discovered_at": "2026-01-25",
     "target_remediation_date": "2026-01-30",
-    "remediation_plan": "Apply JetBrains security release 2023.11.4 and rotate build agent tokens.",
-    "affected_asset_ids": [6]
+    "resolved_at": "2026-01-28T17:45:00+01:00",
+    "remediation_plan": "Apply the vendor security release and rotate build agent tokens.",
+    "affected_asset_ids": [
+      6
+    ]
   },
   {
     "id": 7,
     "internal_code": "VFU-0007",
-    "cve_id": "CVE-2024-4577",
-    "title": "PHP CGI Argument Injection Vulnerability on Windows",
-    "description": "Bypass of Best Fit encoding mapping in Windows-based PHP installations allows remote command execution via query string character injection.",
+    "cve_id": "CVE-2026-90007",
+    "title": "Argument injection in legacy report CGI handler allows command execution",
+    "description": "The legacy CGI handler of the reporting module passes query string characters to the interpreter without sanitization, allowing remote command execution.",
     "cvss_version": "4.0",
-    "cvss_vector": "CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:N/VC:H/VI:H/VA:H/SC:H/SI:H/SA:H",
-    "cvss_score": 9.8,
+    "cvss_vector": "CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:N/VC:H/VI:H/VA:H/SC:N/SI:N/SA:N",
+    "cvss_score": 9.3,
     "severity": "CRITICAL",
     "status": "PENDIENTE DE REMEDIACIÓN",
     "assigned_to": 3,
     "discovered_at": "2026-01-28",
     "target_remediation_date": "2026-02-10",
-    "remediation_plan": "Update PHP to 8.3.8 and migrate legacy CGI handlers to FastCGI.",
-    "affected_asset_ids": [4]
+    "resolved_at": null,
+    "remediation_plan": "Update the interpreter to the fixed release and migrate legacy CGI handlers to FastCGI.",
+    "affected_asset_ids": [
+      4
+    ]
   },
   {
     "id": 8,
     "internal_code": "VFU-0008",
-    "cve_id": "CVE-2024-38077",
-    "title": "Windows Remote Desktop Licensing Service Remote Code Execution",
-    "description": "Heap-based buffer overflow in the Windows Remote Desktop Licensing Service allows unauthenticated network attackers to achieve code execution.",
+    "cve_id": "CVE-2026-90008",
+    "title": "Heap overflow in directory licensing RPC service allows unauthenticated code execution",
+    "description": "A heap-based buffer overflow in the licensing RPC service of the directory server allows unauthenticated network attackers to achieve code execution.",
     "cvss_version": "3.1",
     "cvss_vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
     "cvss_score": 9.8,
@@ -132,15 +158,18 @@
     "assigned_to": 2,
     "discovered_at": "2026-02-01",
     "target_remediation_date": "2026-02-08",
-    "remediation_plan": "Install Microsoft cumulative security update on domain controllers and restrict RPC port exposure.",
-    "affected_asset_ids": [7]
+    "resolved_at": null,
+    "remediation_plan": "Install the cumulative security update on domain controllers and restrict RPC port exposure.",
+    "affected_asset_ids": [
+      7
+    ]
   },
   {
     "id": 9,
     "internal_code": "VFU-0009",
-    "cve_id": "CVE-2023-4863",
-    "title": "libwebp Heap Buffer Overflow in Image Decoding Pipeline",
-    "description": "Heap buffer overflow in WebP lossless encoding decoding allows code execution upon rendering crafted image uploads.",
+    "cve_id": "CVE-2026-90009",
+    "title": "Heap buffer overflow in image decoding library triggered by crafted upload",
+    "description": "A heap buffer overflow in the lossless image decoder allows code execution when a crafted image uploaded by a user is rendered.",
     "cvss_version": "3.1",
     "cvss_vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:U/C:H/I:H/A:H",
     "cvss_score": 8.8,
@@ -149,15 +178,18 @@
     "assigned_to": 3,
     "discovered_at": "2026-02-03",
     "target_remediation_date": "2026-02-15",
-    "remediation_plan": "Update system libwebp packages to >= 1.3.2 across web portal nodes.",
-    "affected_asset_ids": [4]
+    "resolved_at": "2026-02-10T09:20:00+01:00",
+    "remediation_plan": "Update the system image decoding library across web portal nodes.",
+    "affected_asset_ids": [
+      4
+    ]
   },
   {
     "id": 10,
     "internal_code": "VFU-0010",
-    "cve_id": "CVE-2024-21626",
-    "title": "runc Container Escape via File Descriptor Leak (Leaky Vessels)",
-    "description": "In runc through 1.1.11, an attacker can specify a working directory that leaks an internal host file descriptor leading to container breakout.",
+    "cve_id": "CVE-2026-90010",
+    "title": "Container escape through leaked file descriptor in container runtime",
+    "description": "The container runtime leaks an internal host file descriptor when a crafted working directory is specified, allowing a container breakout to the host.",
     "cvss_version": "3.1",
     "cvss_vector": "CVSS:3.1/AV:L/AC:L/PR:N/UI:R/S:C/C:H/I:H/A:H",
     "cvss_score": 8.6,
@@ -166,30 +198,39 @@
     "assigned_to": 2,
     "discovered_at": "2026-02-05",
     "target_remediation_date": "2026-02-20",
-    "remediation_plan": "Upgrade container runtime engines to runc 1.1.12+ on Kubernetes payment and core nodes.",
-    "affected_asset_ids": [1, 2, 8]
+    "resolved_at": null,
+    "remediation_plan": "Upgrade the container runtime on Kubernetes payment and core nodes to the fixed release.",
+    "affected_asset_ids": [
+      1,
+      2,
+      8
+    ]
   },
   {
     "id": 11,
     "internal_code": "VFU-0011",
-    "cve_id": "CVE-2024-3094",
-    "title": "XZ Utils Malicious Backdoor Injection in liblzma",
-    "description": "Upstream source tarballs of XZ Utils contained obfuscated backdoor code modifying OpenSSH authentication functions in build stages.",
+    "cve_id": "CVE-2026-90011",
+    "title": "Backdoor injected into compression library release tarball",
+    "description": "Upstream source tarballs of a widely used compression library contained obfuscated backdoor code that altered authentication functions during the build stage.",
     "cvss_version": "4.0",
     "cvss_vector": "CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:N/VC:H/VI:H/VA:H/SC:H/SI:H/SA:H",
-    "cvss_score": 10.0,
+    "cvss_score": 10,
     "severity": "CRITICAL",
     "status": "CERRADA",
     "assigned_to": 2,
     "discovered_at": "2026-02-07",
     "target_remediation_date": "2026-02-09",
-    "remediation_plan": "Pin xz-utils to verified 5.4.x packages and audit cryptographic checksums.",
-    "affected_asset_ids": [1, 3]
+    "resolved_at": "2026-02-08T19:00:00+01:00",
+    "remediation_plan": "Pin the library to verified clean packages and audit cryptographic checksums.",
+    "affected_asset_ids": [
+      1,
+      3
+    ]
   },
   {
     "id": 12,
     "internal_code": "VFU-0012",
-    "cve_id": "CVE-2024-21762",
+    "cve_id": "CVE-2026-90012",
     "title": "Ejecución remota de código (RCE) por escritura fuera de límites en pasarela API de pagos",
     "description": "Vulnerabilidad crítica de escritura fuera de límites (Out-of-bounds Write) en el motor TLS/HTTP de la API de pagos alojada por HostingSur S.L., permitiendo ejecución de código arbitrario mediante peticiones HTTP manipuladas sin autenticación previa.",
     "cvss_version": "3.1",
@@ -200,15 +241,19 @@
     "assigned_to": 2,
     "discovered_at": "2026-02-10",
     "target_remediation_date": "2026-03-01",
+    "resolved_at": null,
     "remediation_plan": "Aplicar parche de emergencia en el cluster de API de pagos de HostingSur S.L., activar reglas WAF de inspección profunda y condicionar la renovación del contrato de marzo a la verificación del parche.",
-    "affected_asset_ids": [8, 5]
+    "affected_asset_ids": [
+      5,
+      8
+    ]
   },
   {
     "id": 13,
     "internal_code": "VFU-0013",
-    "cve_id": "CVE-2024-20353",
-    "title": "Cisco Adaptive Security Appliance Denial of Service Vulnerability",
-    "description": "A vulnerability in the web server management engine of Cisco ASA software allows an unauthenticated remote attacker to reload the device causing DoS.",
+    "cve_id": "CVE-2026-90013",
+    "title": "Denial of service in firewall web management engine",
+    "description": "A flaw in the web management engine of the firewall allows an unauthenticated remote attacker to reload the device, causing a denial of service.",
     "cvss_version": "3.1",
     "cvss_vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H",
     "cvss_score": 7.5,
@@ -217,15 +262,18 @@
     "assigned_to": 3,
     "discovered_at": "2026-02-11",
     "target_remediation_date": "2026-02-25",
-    "remediation_plan": "Apply Cisco ASA Software release 9.18.4.22 during scheduled maintenance window.",
-    "affected_asset_ids": [5]
+    "resolved_at": null,
+    "remediation_plan": "Apply the fixed firewall software release during the scheduled maintenance window.",
+    "affected_asset_ids": [
+      5
+    ]
   },
   {
     "id": 14,
     "internal_code": "VFU-0014",
-    "cve_id": "CVE-2023-38545",
-    "title": "cURL SOCKS5 Heap Buffer Overflow",
-    "description": "A heap-based buffer overflow in the SOCKS5 proxy handshake protocol in curl allows remote code execution or crash when hostnames exceed 255 bytes.",
+    "cve_id": "CVE-2026-90014",
+    "title": "Heap buffer overflow in proxy client library SOCKS5 handshake",
+    "description": "A heap-based buffer overflow in the SOCKS5 proxy handshake of the client library allows remote code execution or a crash when hostnames exceed 255 bytes.",
     "cvss_version": "3.1",
     "cvss_vector": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:H/A:H",
     "cvss_score": 8.1,
@@ -234,32 +282,42 @@
     "assigned_to": 3,
     "discovered_at": "2026-02-12",
     "target_remediation_date": "2026-02-22",
-    "remediation_plan": "Update curl and libcurl to 8.4.0 across all Debian/Ubuntu base images.",
-    "affected_asset_ids": [1, 2, 4]
+    "resolved_at": "2026-02-19T16:10:00+01:00",
+    "remediation_plan": "Update the client library across all Debian and Ubuntu base images.",
+    "affected_asset_ids": [
+      1,
+      2,
+      4
+    ]
   },
   {
     "id": 15,
     "internal_code": "VFU-0015",
-    "cve_id": "CVE-2024-22243",
-    "title": "Spring Framework URL Parsing Open Redirect and SSRF",
-    "description": "Applications using UriComponentsBuilder in Spring Framework may parse externally provided host information insecurely, enabling SSRF attacks.",
+    "cve_id": "CVE-2026-90015",
+    "title": "URL parsing flaw in web framework enables open redirect and SSRF",
+    "description": "Applications that build URLs from externally provided host information may parse them insecurely in the web framework, enabling open redirects and server-side request forgery.",
     "cvss_version": "4.0",
     "cvss_vector": "CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:P/VC:L/VI:L/VA:N/SC:N/SI:N/SA:N",
-    "cvss_score": 5.1,
+    "cvss_score": 5.3,
     "severity": "MEDIUM",
     "status": "ABIERTA",
     "assigned_to": 2,
     "discovered_at": "2026-02-14",
     "target_remediation_date": "2026-03-14",
-    "remediation_plan": "Upgrade spring-web to 6.1.4 and validate redirect targets against an allowlist.",
-    "affected_asset_ids": [1, 2, 8]
+    "resolved_at": null,
+    "remediation_plan": "Upgrade the web framework to the fixed version and validate redirect targets against an allow-list.",
+    "affected_asset_ids": [
+      1,
+      2,
+      8
+    ]
   },
   {
     "id": 16,
     "internal_code": "VFU-0016",
-    "cve_id": "CVE-2024-26308",
-    "title": "Apache Commons Compress Denial of Service via Pack200",
-    "description": "Allocation of Resources Without Limits in Apache Commons Compress allows an attacker to cause an OutOfMemoryError using crafted pack200 archive files.",
+    "cve_id": "CVE-2026-90016",
+    "title": "Memory exhaustion in archive library when processing crafted archives",
+    "description": "The archive library allocates resources without limits, so a crafted archive file can cause an out-of-memory error and degrade the service.",
     "cvss_version": "3.1",
     "cvss_vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:L",
     "cvss_score": 5.3,
@@ -268,32 +326,38 @@
     "assigned_to": 3,
     "discovered_at": "2026-02-15",
     "target_remediation_date": "2026-03-15",
-    "remediation_plan": "Update org.apache.commons:commons-compress dependency to 1.26.0 in Maven pom.xml.",
-    "affected_asset_ids": [1]
+    "resolved_at": null,
+    "remediation_plan": "Update the archive library dependency to the fixed release in the Maven build.",
+    "affected_asset_ids": [
+      1
+    ]
   },
   {
     "id": 17,
     "internal_code": "VFU-0017",
-    "cve_id": "CVE-2024-28180",
-    "title": "go-jose Malicious JWE Compression Denial of Service (Token Zip Bomb)",
-    "description": "An attacker can send a high-compression JSON Web Encryption token that exhausts server CPU/memory upon decompression.",
+    "cve_id": "CVE-2026-90017",
+    "title": "Compressed token bomb exhausts server resources in token library",
+    "description": "An attacker can send a highly compressed encrypted token that exhausts CPU and memory on the server when it is decompressed.",
     "cvss_version": "4.0",
     "cvss_vector": "CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:N/VC:N/VI:N/VA:L/SC:N/SI:N/SA:N",
-    "cvss_score": 5.3,
+    "cvss_score": 6.9,
     "severity": "MEDIUM",
     "status": "RESUELTA",
     "assigned_to": 2,
     "discovered_at": "2026-02-16",
     "target_remediation_date": "2026-03-10",
-    "remediation_plan": "Update go-jose module to v3.0.3 and enforce 256KB JWE payload decompression cap.",
-    "affected_asset_ids": [2]
+    "resolved_at": "2026-02-24T12:00:00+01:00",
+    "remediation_plan": "Update the token library and enforce a 256 KB decompression cap on token payloads.",
+    "affected_asset_ids": [
+      2
+    ]
   },
   {
     "id": 18,
     "internal_code": "VFU-0018",
-    "cve_id": "CVE-2024-24790",
-    "title": "Golang net/netip Unexpected IPv4-Mapped IPv6 Address Parsing Inconsistency",
-    "description": "IPv4-mapped IPv6 addresses were parsed inconsistently in IsPrivate/IsLoopback checks, which could cause ACL bypasses.",
+    "cve_id": "CVE-2026-90018",
+    "title": "Inconsistent IPv4-mapped IPv6 parsing allows access control list bypass",
+    "description": "IPv4-mapped IPv6 addresses are parsed inconsistently by the address helper functions, which could cause access control list bypasses.",
     "cvss_version": "3.1",
     "cvss_vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:L/I:N/A:N",
     "cvss_score": 5.3,
@@ -302,15 +366,18 @@
     "assigned_to": 3,
     "discovered_at": "2026-02-17",
     "target_remediation_date": "2026-03-05",
-    "remediation_plan": "Recompile Go microservices with Go runtime 1.22.4.",
-    "affected_asset_ids": [3]
+    "resolved_at": "2026-02-25T10:00:00+01:00",
+    "remediation_plan": "Recompile the affected microservices with the fixed runtime release.",
+    "affected_asset_ids": [
+      3
+    ]
   },
   {
     "id": 19,
     "internal_code": "VFU-0019",
-    "cve_id": "CVE-2023-45853",
-    "title": "MiniZip Integer Overflow in zlib Contrib Directory",
-    "description": "MiniZip in zlib contains an integer overflow and resultant heap buffer overflow through a large uncompressed file size parameter.",
+    "cve_id": "CVE-2026-90019",
+    "title": "Integer overflow in legacy archive utility",
+    "description": "A legacy archive utility contains an integer overflow that can lead to a limited heap buffer overflow when a large uncompressed file size is supplied.",
     "cvss_version": "3.1",
     "cvss_vector": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:L/I:N/A:N",
     "cvss_score": 3.7,
@@ -319,24 +386,30 @@
     "assigned_to": 3,
     "discovered_at": "2026-02-18",
     "target_remediation_date": "2026-05-01",
-    "remediation_plan": "Replace legacy minizip archive routines with standard Java/ OS zip libraries.",
-    "affected_asset_ids": [7]
+    "resolved_at": null,
+    "remediation_plan": "Replace the legacy archive routines with standard Java or operating system zip libraries.",
+    "affected_asset_ids": [
+      6
+    ]
   },
   {
     "id": 20,
     "internal_code": "VFU-0020",
-    "cve_id": "CVE-2024-38816",
-    "title": "Spring Framework Path Traversal via Static Resource Handlers",
-    "description": "Applications serving static resources through Spring WebMvc could expose internal files if configured with custom resource chain resolvers.",
+    "cve_id": "CVE-2026-90020",
+    "title": "Path traversal in static resource handler for authenticated users",
+    "description": "Applications serving static resources through custom resource chain resolvers could expose limited internal files to authenticated users.",
     "cvss_version": "4.0",
-    "cvss_vector": "CVSS:4.0/AV:N/AC:L/AT:P/PR:N/UI:N/VC:L/VI:N/VA:N/SC:N/SI:N/SA:N",
-    "cvss_score": 2.6,
+    "cvss_vector": "CVSS:4.0/AV:N/AC:L/AT:P/PR:L/UI:P/VC:L/VI:N/VA:N/SC:N/SI:N/SA:N",
+    "cvss_score": 2.1,
     "severity": "LOW",
     "status": "PENDIENTE DE REMEDIACIÓN",
     "assigned_to": 2,
     "discovered_at": "2026-02-19",
     "target_remediation_date": "2026-05-15",
-    "remediation_plan": "Update Spring Framework to 6.1.13 and audit WebMvcConfigurer resource handlers.",
-    "affected_asset_ids": [1]
+    "resolved_at": null,
+    "remediation_plan": "Update the web framework to the fixed release and audit the resource handler configuration.",
+    "affected_asset_ids": [
+      1
+    ]
   }
 ]

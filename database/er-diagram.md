@@ -15,8 +15,7 @@ erDiagram
         VARCHAR(50) username UK "NOT NULL"
         VARCHAR(120) email UK "NOT NULL"
         VARCHAR(100) full_name "NOT NULL"
-        VARCHAR(255) password_hash "BCrypt ($2b$) or Argon2id hash"
-        VARCHAR(128) password_salt "Cryptographic per-user salt"
+        VARCHAR(255) password_hash "BCrypt ($2b$) or Argon2id hash (salt embedded, no separate column)"
         VARCHAR(20) role "CHECK: ADMIN | ANALYST | VIEWER"
         BOOLEAN is_active "DEFAULT TRUE"
         TIMESTAMPTZ created_at
@@ -29,6 +28,7 @@ erDiagram
         VARCHAR(120) name UK "e.g. HostingSur S.L."
         VARCHAR(150) provided_service "NOT NULL"
         VARCHAR(20) criticality "CHECK: LOW | MEDIUM | HIGH | CRITICAL"
+        BOOLEAN is_critical_third_party "DORA CRITICAL_THIRD_PARTY flag; requires criticality HIGH or CRITICAL"
         VARCHAR(100) contract_reference "NOT NULL"
         VARCHAR(30) contract_status "CHECK: ACTIVE | UNDER_REVIEW | SUSPENDED | TERMINATED"
         DATE review_date "Next scheduled contract review (e.g. 2026-03-15)"
@@ -58,7 +58,7 @@ erDiagram
     vulnerabilities {
         SERIAL id PK
         VARCHAR(20) internal_code UK "CHECK: ^VFU-[0-9]{4,}$ (e.g. VFU-0012)"
-        VARCHAR(30) cve_id UK "e.g. CVE-2024-21762"
+        VARCHAR(30) cve_id UK "CHECK: ^CVE-[0-9]{4}-[0-9]{4,}$ (synthetic, e.g. CVE-2026-90012)"
         VARCHAR(200) title "NOT NULL"
         TEXT description "NOT NULL"
         VARCHAR(30) status "CHECK: ABIERTA | PENDIENTE DE REMEDIACIÓN | RESUELTA | CERRADA"
@@ -71,7 +71,7 @@ erDiagram
         INT reported_by FK "References users(id)"
         DATE discovered_at
         DATE target_remediation_date
-        TIMESTAMPTZ resolved_at
+        TIMESTAMPTZ resolved_at "NOT NULL if and only if RESUELTA or CERRADA"
         TIMESTAMPTZ created_at
         TIMESTAMPTZ updated_at
     }
@@ -92,7 +92,7 @@ erDiagram
         VARCHAR(180) cvss_vector "CHECK: Regex coherence with cvss_version"
         NUMERIC(3_1) cvss_score "CHECK: 0.0 <= cvss_score <= 10.0"
         VARCHAR(20) severity "CHECK: FIRST score-to-severity alignment"
-        BOOLEAN is_current
+        BOOLEAN is_current "UNIQUE per vulnerability WHERE is_current"
         TIMESTAMPTZ assessed_at
     }
 
@@ -107,12 +107,12 @@ erDiagram
 
     audit_logs {
         SERIAL id PK
-        INT vulnerability_id FK "References vulnerabilities(id) ON DELETE CASCADE"
+        INT vulnerability_id FK "References vulnerabilities(id) ON DELETE RESTRICT"
         INT user_id FK "References users(id)"
         VARCHAR(40) action_type "STATUS_TRANSITION | VULNERABILITY_CREATED | ..."
         VARCHAR(30) previous_status
         VARCHAR(30) new_status
-        TEXT justification "NOT NULL"
+        TEXT justification "NOT NULL; table is append-only (no UPDATE/DELETE/TRUNCATE)"
         TIMESTAMPTZ created_at
     }
 
@@ -135,3 +135,7 @@ erDiagram
 1. **Mandatory N:M Associative Entity (`vulnerability_assets`)**: Resolves the many-to-many relationship between `vulnerabilities` and `assets` using composite primary key `(vulnerability_id, asset_id)` and per-asset `exposure_status`.
 2. **EU DORA Chapter V Traceability (`ict_providers` $\rightarrow$ `assets` $\rightarrow$ `vulnerability_assets` $\rightarrow$ `vulnerabilities`)**: Enables deterministic calculation of whether an ICT third-party provider (e.g., **HostingSur S.L.**) is `AT_RISK` due to open/pending High or Critical vulnerabilities (e.g., **`VFU-0012`**, CVSS **9.8**, `PENDIENTE DE REMEDIACIÓN`) on its managed assets (e.g., **API de pagos**).
 3. **Database-Enforced CVSS Coherence**: Both `vulnerabilities` and `cvss_assessments` enforce PostgreSQL regex and range `CHECK` constraints so invalid vectors (`cvss_version = '4.0'` with `CVSS:3.1/...`) or incoherent severity labels (`cvss_score = 9.8` with `LOW`) trigger immediate transactional rollback.
+
+4. **Immutable Audit Trail**: `audit_logs` uses `ON DELETE RESTRICT` and the triggers `trg_audit_logs_no_update_delete` / `trg_audit_logs_no_truncate` so history can never be edited, deleted or silently cascaded away.
+5. **Lifecycle Consistency**: `chk_vuln_resolved_at_matches_status` forces `resolved_at` to be set if and only if the status is `RESUELTA` or `CERRADA`; `uq_cvss_assessments_one_current` guarantees a single current CVSS assessment per vulnerability.
+6. **Synthetic Data**: all CVE identifiers in the seed (`CVE-2026-90001` to `CVE-2026-90020`) are fictitious; CVSS scores were computed from each vector with the official FIRST formulas.

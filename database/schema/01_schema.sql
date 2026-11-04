@@ -3,11 +3,13 @@
 -- File: database/schema/01_schema.sql
 -- Aligned with: EU DORA Regulation (Chapter V) & FIRST CVSS Base v3.1 / v4.0
 -- Audited & Hardened by: Developer B (QA Database Review on Developer A's DDL)
+-- Second review pass: validated by executing schema + seed on a real PostgreSQL
+--   engine and probing every CHECK constraint, FK and trigger with bad data.
 -- =============================================================================
 
 BEGIN;
 
--- Drop existing tables in reverse dependency order for clean idempotency
+-- Drop existing objects in reverse dependency order for clean idempotency
 DROP TABLE IF EXISTS audit_logs CASCADE;
 DROP TABLE IF EXISTS remediation_comments CASCADE;
 DROP TABLE IF EXISTS cvss_assessments CASCADE;
@@ -16,11 +18,14 @@ DROP TABLE IF EXISTS vulnerabilities CASCADE;
 DROP TABLE IF EXISTS assets CASCADE;
 DROP TABLE IF EXISTS ict_providers CASCADE;
 DROP TABLE IF EXISTS users CASCADE;
+DROP FUNCTION IF EXISTS fn_audit_logs_append_only() CASCADE;
 
 -- =============================================================================
 -- 1. TABLE: users
 -- Stores platform operators with strict RBAC roles and salted password hashes.
 -- Never stores plaintext passwords (enforces BCrypt/Argon2id hash format).
+-- There is NO separate salt column: BCrypt and Argon2id embed a random per-user
+-- salt inside password_hash itself (e.g. $2b$12$<22-char salt><31-char hash>).
 -- =============================================================================
 CREATE TABLE users (
     id              SERIAL PRIMARY KEY,
@@ -28,7 +33,6 @@ CREATE TABLE users (
     email           VARCHAR(120) NOT NULL UNIQUE,
     full_name       VARCHAR(100) NOT NULL,
     password_hash   VARCHAR(255) NOT NULL,
-    password_salt   VARCHAR(128) NOT NULL,
     role            VARCHAR(20)  NOT NULL,
     is_active       BOOLEAN      NOT NULL DEFAULT TRUE,
     created_at      TIMESTAMPTZ  NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -50,24 +54,31 @@ CREATE TABLE users (
 -- 2. TABLE: ict_providers (SGE Module — EU DORA Regulation Chapter V)
 -- Manages third-party ICT service providers, contract references, criticality,
 -- and scheduled review dates (e.g., HostingSur S.L. review in March).
+-- is_critical_third_party flags a CRITICAL_THIRD_PARTY provider (DORA): it is
+-- used to compute concentration / supply-chain risk.
 -- =============================================================================
 CREATE TABLE ict_providers (
-    id                   SERIAL PRIMARY KEY,
-    provider_code        VARCHAR(20)  NOT NULL UNIQUE,
-    name                 VARCHAR(120) NOT NULL UNIQUE,
-    provided_service     VARCHAR(150) NOT NULL,
-    criticality          VARCHAR(20)  NOT NULL,
-    contract_reference   VARCHAR(100) NOT NULL,
-    contract_status      VARCHAR(30)  NOT NULL DEFAULT 'ACTIVE',
-    review_date          DATE         NOT NULL,
-    contact_email        VARCHAR(120) NOT NULL,
-    country_code         CHAR(2)      NOT NULL DEFAULT 'ES',
-    sla_availability_pct NUMERIC(5,2) NOT NULL DEFAULT 99.90,
-    created_at           TIMESTAMPTZ  NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at           TIMESTAMPTZ  NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    id                      SERIAL PRIMARY KEY,
+    provider_code           VARCHAR(20)  NOT NULL UNIQUE,
+    name                    VARCHAR(120) NOT NULL UNIQUE,
+    provided_service        VARCHAR(150) NOT NULL,
+    criticality             VARCHAR(20)  NOT NULL,
+    is_critical_third_party BOOLEAN      NOT NULL DEFAULT FALSE,
+    contract_reference      VARCHAR(100) NOT NULL,
+    contract_status         VARCHAR(30)  NOT NULL DEFAULT 'ACTIVE',
+    review_date             DATE         NOT NULL,
+    contact_email           VARCHAR(120) NOT NULL,
+    country_code            CHAR(2)      NOT NULL DEFAULT 'ES',
+    sla_availability_pct    NUMERIC(5,2) NOT NULL DEFAULT 99.90,
+    created_at              TIMESTAMPTZ  NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at              TIMESTAMPTZ  NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT chk_ict_providers_criticality CHECK (
         criticality IN ('LOW', 'MEDIUM', 'HIGH', 'CRITICAL')
+    ),
+    -- A critical third-party provider cannot be rated below HIGH criticality
+    CONSTRAINT chk_ict_providers_critical_third_party CHECK (
+        NOT is_critical_third_party OR criticality IN ('HIGH', 'CRITICAL')
     ),
     CONSTRAINT chk_ict_providers_contract_status CHECK (
         contract_status IN ('ACTIVE', 'UNDER_REVIEW', 'SUSPENDED', 'TERMINATED')
@@ -115,6 +126,16 @@ CREATE TABLE assets (
 -- Core defensive vulnerability registry with internal tracking code (VFU-XXXX),
 -- optional CVE identifier, strict 4-state lifecycle, and current CVSS Base
 -- assessment enforced via SQL CHECK constraints.
+--
+-- Design note (intentional denormalization): the CURRENT cvss_* values are kept
+-- here as a snapshot so paginated list queries need no join. The full history
+-- lives in cvss_assessments. The backend must update both in ONE transaction.
+--
+-- Lifecycle note: the allowed transitions (ABIERTA -> PENDIENTE DE REMEDIACIÓN
+-- -> RESUELTA -> CERRADA, and RESUELTA -> ABIERTA on regression) are validated
+-- by the backend service layer; every transition must also append a row to
+-- audit_logs. When a vulnerability is reopened (RESUELTA -> ABIERTA) the backend
+-- must set resolved_at back to NULL (see chk_vuln_resolved_at_matches_status).
 -- =============================================================================
 CREATE TABLE vulnerabilities (
     id                      SERIAL PRIMARY KEY,
@@ -141,9 +162,19 @@ CREATE TABLE vulnerabilities (
         internal_code ~ '^VFU-[0-9]{4,}$'
     ),
 
+    -- CVE identifier format (optional field): CVE-YYYY-NNNN...
+    CONSTRAINT chk_vuln_cve_id_format CHECK (
+        cve_id IS NULL OR cve_id ~ '^CVE-[0-9]{4}-[0-9]{4,}$'
+    ),
+
     -- Strict 4-state lifecycle required by official specification
     CONSTRAINT chk_vuln_lifecycle_status CHECK (
         status IN ('ABIERTA', 'PENDIENTE DE REMEDIACIÓN', 'RESUELTA', 'CERRADA')
+    ),
+
+    -- resolved_at is set if and only if the vulnerability is RESUELTA or CERRADA
+    CONSTRAINT chk_vuln_resolved_at_matches_status CHECK (
+        (status IN ('RESUELTA', 'CERRADA')) = (resolved_at IS NOT NULL)
     ),
 
     -- Supported CVSS Base versions
@@ -207,6 +238,8 @@ CREATE TABLE vulnerability_assets (
 -- =============================================================================
 -- 6. TABLE: cvss_assessments (3NF Historical CVSS Scoring & Re-Assessment Log)
 -- Preserves full history of CVSS v3.1 / v4.0 base evaluations per vulnerability.
+-- At most ONE row per vulnerability can be is_current = TRUE
+-- (see uq_cvss_assessments_one_current below).
 -- =============================================================================
 CREATE TABLE cvss_assessments (
     id               SERIAL PRIMARY KEY,
@@ -261,12 +294,16 @@ CREATE TABLE remediation_comments (
 );
 
 -- =============================================================================
--- 8. TABLE: audit_logs (Immutable Security & Lifecycle Traceability Log)
+-- 8. TABLE: audit_logs (Immutable, append-only Security & Lifecycle Log)
 -- Records every status transition and critical administrative operation.
+-- Immutability is enforced in the database itself:
+--   • FKs use ON DELETE RESTRICT, so deleting a vulnerability or a user can never
+--     silently wipe its audit history.
+--   • Triggers below reject UPDATE, DELETE and TRUNCATE.
 -- =============================================================================
 CREATE TABLE audit_logs (
     id               SERIAL PRIMARY KEY,
-    vulnerability_id INT          REFERENCES vulnerabilities(id) ON DELETE CASCADE ON UPDATE CASCADE,
+    vulnerability_id INT          REFERENCES vulnerabilities(id) ON DELETE RESTRICT ON UPDATE CASCADE,
     user_id          INT          NOT NULL REFERENCES users(id) ON DELETE RESTRICT ON UPDATE CASCADE,
     action_type      VARCHAR(40)  NOT NULL DEFAULT 'STATUS_TRANSITION',
     previous_status  VARCHAR(30),
@@ -281,6 +318,21 @@ CREATE TABLE audit_logs (
         new_status IS NULL OR new_status IN ('ABIERTA', 'PENDIENTE DE REMEDIACIÓN', 'RESUELTA', 'CERRADA')
     )
 );
+
+CREATE FUNCTION fn_audit_logs_append_only() RETURNS trigger AS $$
+BEGIN
+    RAISE EXCEPTION 'audit_logs is append-only: % is not allowed', TG_OP
+        USING ERRCODE = 'restrict_violation';
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_audit_logs_no_update_delete
+    BEFORE UPDATE OR DELETE ON audit_logs
+    FOR EACH ROW EXECUTE FUNCTION fn_audit_logs_append_only();
+
+CREATE TRIGGER trg_audit_logs_no_truncate
+    BEFORE TRUNCATE ON audit_logs
+    FOR EACH STATEMENT EXECUTE FUNCTION fn_audit_logs_append_only();
 
 -- =============================================================================
 -- PERFORMANCE & GREEN SOFTWARE COMPOSITE INDEXES
@@ -304,6 +356,10 @@ CREATE INDEX idx_vuln_assets_asset_lookup
 
 CREATE INDEX idx_cvss_assessments_vuln_current
     ON cvss_assessments (vulnerability_id, is_current);
+
+-- Guarantees a single current CVSS assessment per vulnerability
+CREATE UNIQUE INDEX uq_cvss_assessments_one_current
+    ON cvss_assessments (vulnerability_id) WHERE is_current;
 
 CREATE INDEX idx_remediation_comments_vuln_date
     ON remediation_comments (vulnerability_id, created_at DESC);

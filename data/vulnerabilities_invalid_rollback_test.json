@@ -1,8 +1,8 @@
 [
   {
     "internal_code": "VFU-0091",
-    "cve_id": "CVE-2025-1001",
-    "title": "Valid Batch Item 1 — PostgreSQL JDBC Driver PreparedStatement Parsing Issue",
+    "cve_id": "CVE-2026-90091",
+    "title": "Valid Batch Item 1 — Database driver prepared statement parsing issue",
     "description": "Valid record at start of batch import to test transactional atomicity. Should be rolled back when record #4 fails.",
     "cvss_version": "3.1",
     "cvss_vector": "CVSS:3.1/AV:N/AC:H/PR:L/UI:N/S:U/C:H/I:H/A:N",
@@ -12,13 +12,16 @@
     "assigned_to": 2,
     "discovered_at": "2026-02-20",
     "target_remediation_date": "2026-03-20",
-    "remediation_plan": "Upgrade org.postgresql:postgresql driver to 42.7.3.",
-    "affected_asset_ids": [1]
+    "resolved_at": null,
+    "remediation_plan": "Upgrade the database driver dependency to the fixed release.",
+    "affected_asset_ids": [
+      1
+    ]
   },
   {
     "internal_code": "VFU-0092",
-    "cve_id": "CVE-2025-1002",
-    "title": "Valid Batch Item 2 — Nginx HTTP/3 QUIC Frame Memory Disclosure",
+    "cve_id": "CVE-2026-90092",
+    "title": "Valid Batch Item 2 — Ingress controller QUIC frame memory disclosure",
     "description": "Second valid record in transactional batch. Must NOT remain in database after rollback.",
     "cvss_version": "4.0",
     "cvss_vector": "CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:N/VC:L/VI:N/VA:L/SC:N/SI:N/SA:N",
@@ -28,13 +31,17 @@
     "assigned_to": 3,
     "discovered_at": "2026-02-20",
     "target_remediation_date": "2026-03-25",
-    "remediation_plan": "Upgrade Nginx ingress controller to 1.27.1.",
-    "affected_asset_ids": [2, 8]
+    "resolved_at": null,
+    "remediation_plan": "Upgrade the ingress controller to the fixed release.",
+    "affected_asset_ids": [
+      2,
+      8
+    ]
   },
   {
     "internal_code": "VFU-0093",
-    "cve_id": "CVE-2025-1003",
-    "title": "Valid Batch Item 3 — Linux Kernel Netfilter Privilege Escalation",
+    "cve_id": "CVE-2026-90093",
+    "title": "Valid Batch Item 3 — Kernel packet filter privilege escalation",
     "description": "Third valid record in transactional batch. Must NOT remain in database after rollback.",
     "cvss_version": "3.1",
     "cvss_vector": "CVSS:3.1/AV:L/AC:L/PR:L/UI:N/S:U/C:H/I:H/A:H",
@@ -44,12 +51,16 @@
     "assigned_to": 2,
     "discovered_at": "2026-02-20",
     "target_remediation_date": "2026-03-05",
+    "resolved_at": null,
     "remediation_plan": "Apply live kernel patch to production nodes.",
-    "affected_asset_ids": [1, 8]
+    "affected_asset_ids": [
+      1,
+      8
+    ]
   },
   {
     "internal_code": "VFU-0094",
-    "cve_id": "CVE-2025-9998",
+    "cve_id": "CVE-2026-90094",
     "title": "CORRUPT RECORD 1 — CVSS Version 4.0 Paired with CVSS 3.1 Vector String",
     "description": "Intentional constraint violation (chk_vuln_cvss_version_vector_coherence): declares cvss_version '4.0' while supplying a 'CVSS:3.1/...' vector string.",
     "cvss_version": "4.0",
@@ -60,12 +71,15 @@
     "assigned_to": 2,
     "discovered_at": "2026-02-20",
     "target_remediation_date": "2026-03-01",
+    "resolved_at": null,
     "remediation_plan": "This record must trigger an immediate SQL/Validator exception and full transaction ROLLBACK.",
-    "affected_asset_ids": [8]
+    "affected_asset_ids": [
+      8
+    ]
   },
   {
     "internal_code": "VFU-0095",
-    "cve_id": "CVE-2025-9999",
+    "cve_id": "CVE-2026-90095",
     "title": "CORRUPT RECORD 2 — CVSS Score 9.8 Paired with Incoherent Severity LOW",
     "description": "Intentional constraint violation (chk_vuln_cvss_score_severity_coherence): declares cvss_score 9.8 (Critical range 9.0-10.0) with severity 'LOW'.",
     "cvss_version": "3.1",
@@ -76,7 +90,10 @@
     "assigned_to": 2,
     "discovered_at": "2026-02-20",
     "target_remediation_date": "2026-03-01",
+    "resolved_at": null,
     "remediation_plan": "This record must also be rejected by both API schema validation and SQL CHECK constraints.",
-    "affected_asset_ids": [8]
+    "affected_asset_ids": [
+      8
+    ]
   }
 ]
