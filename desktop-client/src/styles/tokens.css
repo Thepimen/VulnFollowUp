@@ -1,0 +1,115 @@
+/* ==========================================================================
+   VulnFollowUp — Enterprise DevSecOps & EU DORA Design Tokens (WCAG 2.1 AA)
+   Direction: High-contrast Financial Security Telemetry (Zero Gradients)
+   Contrast verification: All text/background pairs >= 4.5:1 (most >= 7.2:1)
+   ========================================================================== */
+
+:root,
+[data-theme='dark'] {
+  /* Core Surfaces (OLED-friendly Green Software Dark Mode) */
+  --bg-ground: #0b0f14;
+  --bg-surface: #121820;
+  --bg-elevated: #18202b;
+  --bg-interactive: #1f2937;
+  --border-subtle: #283546;
+  --border-strong: #3b4d63;
+
+  /* Typography Ink (Contrast on #0b0f14 / #121820) */
+  --ink-primary: #f1f5f9;   /* 16.4:1 contrast */
+  --ink-secondary: #cbd5e1; /* 11.8:1 contrast */
+  --ink-muted: #94a3b8;     /* 6.7:1 contrast (>= 4.5:1 AA) */
+
+  /* Primary Action & Focus Ring */
+  --accent-primary: #38bdf8;
+  --accent-primary-ink: #081018; /* 10.1:1 contrast on #38bdf8 */
+  --accent-focus: #7dd3fc;
+
+  /* Semantic CVSS Severity Tokens (Background + Border + Text >= 5.2:1) */
+  --sev-critical-bg: #3b0a14;
+  --sev-critical-border: #f43f5e;
+  --sev-critical-ink: #fecdd3; /* 10.8:1 */
+
+  --sev-high-bg: #3b1706;
+  --sev-high-border: #fb923c;
+  --sev-high-ink: #ffedd5; /* 11.4:1 */
+
+  --sev-medium-bg: #362805;
+  --sev-medium-border: #facc15;
+  --sev-medium-ink: #fef08a; /* 11.9:1 */
+
+  --sev-low-bg: #072d20;
+  --sev-low-border: #34d399;
+  --sev-low-ink: #d1fae5; /* 11.6:1 */
+
+  --sev-none-bg: #1e293b;
+  --sev-none-border: #94a3b8;
+  --sev-none-ink: #e2e8f0; /* 10.2:1 */
+
+  /* Lifecycle & DORA Status Tokens */
+  --status-open-bg: #3b0a14;
+  --status-open-ink: #fecdd3;
+  --status-pending-bg: #362805;
+  --status-pending-ink: #fef08a;
+  --status-resolved-bg: #082f49;
+  --status-resolved-ink: #bae6fd;
+  --status-closed-bg: #072d20;
+  --status-closed-ink: #d1fae5;
+}
+
+[data-theme='light'] {
+  /* Core Surfaces (Editorial Crisp Paper Light Mode) */
+  --bg-ground: #f8fafc;
+  --bg-surface: #ffffff;
+  --bg-elevated: #f1f5f9;
+  --bg-interactive: #e2e8f0;
+  --border-subtle: #cbd5e1;
+  --border-strong: #64748b;
+
+  /* Typography Ink (Contrast on #ffffff / #f8fafc) */
+  --ink-primary: #0f172a;   /* 17.8:1 contrast */
+  --ink-secondary: #1e293b; /* 14.5:1 contrast */
+  --ink-muted: #475569;     /* 7.5:1 contrast (>= 4.5:1 AA) */
+
+  /* Primary Action & Focus Ring */
+  --accent-primary: #0369a1;
+  --accent-primary-ink: #ffffff; /* 6.3:1 contrast on #0369a1 */
+  --accent-focus: #0284c7;
+
+  /* Semantic CVSS Severity Tokens (Light Mode Contrast >= 5.8:1) */
+  --sev-critical-bg: #ffe4e6;
+  --sev-critical-border: #be123c;
+  --sev-critical-ink: #881337; /* 8.4:1 */
+
+  --sev-high-bg: #ffedd5;
+  --sev-high-border: #c2410c;
+  --sev-high-ink: #7c2d12; /* 8.9:1 */
+
+  --sev-medium-bg: #fef9c3;
+  --sev-medium-border: #a16207;
+  --sev-medium-ink: #713f12; /* 9.3:1 */
+
+  --sev-low-bg: #d1fae5;
+  --sev-low-border: #047857;
+  --sev-low-ink: #064e3b; /* 9.6:1 */
+
+  --sev-none-bg: #f1f5f9;
+  --sev-none-border: #475569;
+  --sev-none-ink: #1e293b; /* 12.1:1 */
+
+  /* Lifecycle & DORA Status Tokens */
+  --status-open-bg: #ffe4e6;
+  --status-open-ink: #881337;
+  --status-pending-bg: #fef9c3;
+  --status-pending-ink: #713f12;
+  --status-resolved-bg: #e0f2fe;
+  --status-resolved-ink: #0c4a6e;
+  --status-closed-bg: #d1fae5;
+  --status-closed-ink: #064e3b;
+}
+
+:root {
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'JetBrains Mono', 'IBM Plex Mono', 'Fira Code', Consolas, monospace;
+  --radius-sharp: 2px;
+  --radius-control: 4px;
+}
