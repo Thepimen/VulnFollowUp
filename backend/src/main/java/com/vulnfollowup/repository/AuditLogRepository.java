@@ -1,20 +1,25 @@
 package com.vulnfollowup.repository;
 
-import com.vulnfollowup.model.AuditLog;
+import java.util.List;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
+import com.vulnfollowup.model.AuditLog;
 
 /**
- * Repositorio JPA para consultar y registrar el historial de auditoría ("Remediation_Audit").
+ * Repositorio JPA para consultar y registrar el historial de auditoría (tabla audit_logs).
+ * La tabla es de solo inserción: ningún código debe llamar a los métodos delete* de este repositorio.
  */
 @Repository
-public interface AuditLogRepository extends JpaRepository<AuditLog, Long> {
+public interface AuditLogRepository extends JpaRepository<AuditLog, Integer> {
 
-    // Obtiene el historial completo de cambios de estado de una vulnerabilidad ordenado del más reciente al más antiguo
-    List<AuditLog> findByVulnerabilityIdOrderByAuditDateDesc(Long vulnerabilityId);
+    // Cuenta los registros de auditoría de una vulnerabilidad
+    long countByVulnerabilityId(Integer vulnerabilityId);
 
-    // Obtiene todas las acciones de auditoría realizadas por un usuario concreto
-    List<AuditLog> findByUserId(Long userId);
+    // Comprueba si una vulnerabilidad tiene historial de auditoría (impide su borrado)
+    boolean existsByVulnerabilityId(Integer vulnerabilityId);
+
+    // Historial de una vulnerabilidad en orden cronológico
+    List<AuditLog> findByVulnerabilityIdOrderByCreatedAtAscIdAsc(Integer vulnerabilityId);
 }

@@ -1,87 +1,117 @@
 package com.vulnfollowup.model;
 
+import java.time.OffsetDateTime;
+import java.util.Objects;
+
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+
+import com.vulnfollowup.model.enums.ProviderCriticality;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
-import jakarta.persistence.ForeignKey;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
-import org.hibernate.annotations.JdbcTypeCode;
-import org.hibernate.type.SqlTypes;
-
-import java.util.LinkedHashSet;
-import java.util.Objects;
-import java.util.Set;
 
 /**
- * Entidad que representa cada activo de la empresa (servidores, APIs, bases de datos, etc.).
- * Se conecta con la tabla "Asset" de nuestra base de datos.
+ * Entidad que representa cada activo tecnológico (servidores, APIs, bases de datos, etc.).
+ * Se mapea contra la tabla {@code assets} del Esquema_Oficial (13 columnas).
+ * La relación con vulnerabilidades se navega desde Vulnerability a través de VulnerabilityAsset.
  */
 @Entity
-@Table(name = "\"Asset\"")
+@Table(name = "assets")
 public class Asset {
 
+    // La PK es SERIAL (INTEGER) en PostgreSQL, por eso el id es Integer
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @JdbcTypeCode(SqlTypes.INTEGER)
     @Column(name = "id", nullable = false, updatable = false)
-    private Long id;
+    private Integer id;
 
-    @Column(name = "name", length = 100, nullable = false)
+    @Column(name = "asset_code", length = 40, nullable = false, unique = true)
+    private String assetCode;
+
+    @Column(name = "name", length = 120, nullable = false, unique = true)
     private String name;
 
-    @Column(name = "type", length = 50, nullable = false)
-    private String type;
+    // Texto libre vigilado por la CHECK del esquema (API_SERVICE, DATABASE, WEB_SERVER...)
+    @Column(name = "asset_type", length = 50, nullable = false)
+    private String assetType;
 
-    @Column(name = "owner", length = 100, nullable = false)
-    private String owner;
+    // Mismos valores que la criticidad del proveedor; ProviderCriticalityConverter (autoApply)
+    @Column(name = "criticality", length = 20, nullable = false)
+    private ProviderCriticality criticality;
 
-    @Column(name = "environment", length = 50, nullable = false)
-    private String environment;
+    // PRODUCTION, STAGING, DEVELOPMENT o DR
+    @Column(name = "environment", length = 30, nullable = false)
+    private String environment = "PRODUCTION";
 
-    @Column(name = "status", length = 50, nullable = false)
-    private String status;
+    @Column(name = "owner_department", length = 100, nullable = false)
+    private String ownerDepartment;
 
-    // Muchos activos pueden depender de un mismo proveedor TIC (clave foránea id_provider en SQL)
-    // Se pone en LAZY para evitar consultas innecesarias (problema N+1)
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "id_provider", foreignKey = @ForeignKey(name = "fk_provider"))
-    private TicProvider ticProvider;
+    @Column(name = "ip_address", length = 45)
+    private String ipAddress;
 
-    // Lado inverso de la relación N:M con Vulnerability (el lado propietario está en Vulnerability)
-    @ManyToMany(mappedBy = "assets", fetch = FetchType.LAZY)
-    private Set<Vulnerability> vulnerabilities = new LinkedHashSet<>();
+    @Column(name = "operating_system", length = 80)
+    private String operatingSystem;
+
+    // ACTIVE, MAINTENANCE o DECOMMISSIONED
+    @Column(name = "status", length = 30, nullable = false)
+    private String status = "ACTIVE";
+
+    // Muchos activos pueden depender de un mismo proveedor TIC; provider_id admite NULL.
+    // LAZY para evitar consultas innecesarias (problema N+1)
+    @ManyToOne(fetch = FetchType.LAZY, optional = true)
+    @JoinColumn(name = "provider_id")
+    private TicProvider provider;
+
+    // Hibernate inserta la columna explícitamente, así que el DEFAULT de la BD no se aplicaría
+    @CreationTimestamp
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private OffsetDateTime createdAt;
+
+    @UpdateTimestamp
+    @Column(name = "updated_at", nullable = false)
+    private OffsetDateTime updatedAt;
 
     public Asset() {
     }
 
     public Asset(
+            String assetCode,
             String name,
-            String type,
-            String owner,
-            String environment,
-            String status,
-            TicProvider ticProvider
+            String assetType,
+            ProviderCriticality criticality,
+            String ownerDepartment,
+            TicProvider provider
     ) {
+        this.assetCode = assetCode;
         this.name = name;
-        this.type = type;
-        this.owner = owner;
-        this.environment = environment;
-        this.status = status;
-        this.ticProvider = ticProvider;
+        this.assetType = assetType;
+        this.criticality = criticality;
+        this.ownerDepartment = ownerDepartment;
+        this.provider = provider;
     }
 
-    public Long getId() {
+    public Integer getId() {
         return id;
     }
 
-    public void setId(Long id) {
+    public void setId(Integer id) {
         this.id = id;
+    }
+
+    public String getAssetCode() {
+        return assetCode;
+    }
+
+    public void setAssetCode(String assetCode) {
+        this.assetCode = assetCode;
     }
 
     public String getName() {
@@ -92,20 +122,20 @@ public class Asset {
         this.name = name;
     }
 
-    public String getType() {
-        return type;
+    public String getAssetType() {
+        return assetType;
     }
 
-    public void setType(String type) {
-        this.type = type;
+    public void setAssetType(String assetType) {
+        this.assetType = assetType;
     }
 
-    public String getOwner() {
-        return owner;
+    public ProviderCriticality getCriticality() {
+        return criticality;
     }
 
-    public void setOwner(String owner) {
-        this.owner = owner;
+    public void setCriticality(ProviderCriticality criticality) {
+        this.criticality = criticality;
     }
 
     public String getEnvironment() {
@@ -116,6 +146,30 @@ public class Asset {
         this.environment = environment;
     }
 
+    public String getOwnerDepartment() {
+        return ownerDepartment;
+    }
+
+    public void setOwnerDepartment(String ownerDepartment) {
+        this.ownerDepartment = ownerDepartment;
+    }
+
+    public String getIpAddress() {
+        return ipAddress;
+    }
+
+    public void setIpAddress(String ipAddress) {
+        this.ipAddress = ipAddress;
+    }
+
+    public String getOperatingSystem() {
+        return operatingSystem;
+    }
+
+    public void setOperatingSystem(String operatingSystem) {
+        this.operatingSystem = operatingSystem;
+    }
+
     public String getStatus() {
         return status;
     }
@@ -124,22 +178,23 @@ public class Asset {
         this.status = status;
     }
 
-    public TicProvider getTicProvider() {
-        return ticProvider;
+    public TicProvider getProvider() {
+        return provider;
     }
 
-    public void setTicProvider(TicProvider ticProvider) {
-        this.ticProvider = ticProvider;
+    public void setProvider(TicProvider provider) {
+        this.provider = provider;
     }
 
-    public Set<Vulnerability> getVulnerabilities() {
-        return vulnerabilities;
+    public OffsetDateTime getCreatedAt() {
+        return createdAt;
     }
 
-    public void setVulnerabilities(Set<Vulnerability> vulnerabilities) {
-        this.vulnerabilities = vulnerabilities;
+    public OffsetDateTime getUpdatedAt() {
+        return updatedAt;
     }
 
+    // Igualdad por id: dos instancias sin persistir nunca son iguales
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -147,6 +202,7 @@ public class Asset {
         return id != null && Objects.equals(id, asset.id);
     }
 
+    // hashCode constante por clase para que no cambie al asignarse el id tras el INSERT
     @Override
     public int hashCode() {
         return getClass().hashCode();

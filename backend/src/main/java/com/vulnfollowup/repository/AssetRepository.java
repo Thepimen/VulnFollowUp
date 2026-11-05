@@ -1,19 +1,20 @@
 package com.vulnfollowup.repository;
 
-import com.vulnfollowup.model.Asset;
+import java.util.List;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
+import com.vulnfollowup.model.Asset;
 
 /**
- * Repositorio JPA con las operaciones CRUD básicas para gestionar los activos (Asset).
+ * Repositorio JPA con las operaciones CRUD básicas para gestionar los activos (tabla assets).
  */
 @Repository
-public interface AssetRepository extends JpaRepository<Asset, Long> {
+public interface AssetRepository extends JpaRepository<Asset, Integer> {
 
-    // Devuelve todos los activos que dependen de un proveedor TIC concreto
-    List<Asset> findByTicProviderId(Long ticProviderId);
+    // Cuenta los activos que dependen de un proveedor TIC concreto (resuelve provider.id)
+    long countByProviderId(Integer providerId);
 
     // Filtra los activos por entorno (ej: PRODUCTION, STAGING...)
     List<Asset> findByEnvironment(String environment);

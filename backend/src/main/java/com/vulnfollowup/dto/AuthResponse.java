@@ -1,15 +1,16 @@
 package com.vulnfollowup.dto;
 
-import com.vulnfollowup.model.enums.UserRole;
-
 import java.util.Arrays;
+
+import com.vulnfollowup.model.enums.UserRole;
 
 /**
  * DTO de respuesta tras un login correcto con los datos de sesión y el rol RBAC del usuario.
  */
 public class AuthResponse {
 
-    private Long userId;
+    // Integer porque users.id es SERIAL (INTEGER) en el Esquema_Oficial
+    private Integer userId;
     private String username;
     private UserRole role;
     private boolean authenticated;
@@ -17,7 +18,7 @@ public class AuthResponse {
     public AuthResponse() {
     }
 
-    public AuthResponse(Long userId, String username, UserRole role, boolean authenticated) {
+    public AuthResponse(Integer userId, String username, UserRole role, boolean authenticated) {
         this.userId = userId;
         this.username = username;
         this.role = role;
@@ -32,11 +33,11 @@ public class AuthResponse {
         return Arrays.asList(allowedRoles).contains(role);
     }
 
-    public Long getUserId() {
+    public Integer getUserId() {
         return userId;
     }
 
-    public void setUserId(Long userId) {
+    public void setUserId(Integer userId) {
         this.userId = userId;
     }
 

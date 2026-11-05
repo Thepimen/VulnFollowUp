@@ -156,6 +156,9 @@ CREATE TABLE vulnerabilities (
     resolved_at             TIMESTAMPTZ,
     created_at              TIMESTAMPTZ   NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at              TIMESTAMPTZ   NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    -- Optimistic locking counter managed by the backend (JPA @Version):
+    -- starts at 0 and is incremented on every successful UPDATE.
+    version                 INTEGER       NOT NULL DEFAULT 0,
 
     -- Internal code format: VFU-0001
     CONSTRAINT chk_vuln_internal_code_format CHECK (

@@ -1,23 +1,24 @@
 package com.vulnfollowup.model.converter;
 
 import com.vulnfollowup.model.enums.CvssVersion;
-import jakarta.persistence.AttributeConverter;
+
 import jakarta.persistence.Converter;
 
 /**
- * Convertidor para guardar la versión de CVSS como texto ("3.1" o "4.0") en la BD
- * mientras en Java trabajamos de forma segura con el enum CvssVersion.
+ * Convertidor JPA para {@link CvssVersion}.
+ *
+ * <p>Traduce entre las constantes del enum y el texto exacto de la columna
+ * {@code cvss_assessments.cvss_version}: {@code V3_1} se guarda como {@code "3.1"}
+ * y {@code V4_0} como {@code "4.0"}.</p>
+ *
+ * <p>Con {@code autoApply = true}, Hibernate lo aplica a todos los atributos de tipo
+ * {@link CvssVersion} sin necesidad de anotar cada campo.</p>
  */
 @Converter(autoApply = true)
-public class CvssVersionConverter implements AttributeConverter<CvssVersion, String> {
+public class CvssVersionConverter extends DbValueEnumConverter<CvssVersion> {
 
-    @Override
-    public String convertToDatabaseColumn(CvssVersion attribute) {
-        return attribute != null ? attribute.getDbValue() : null;
-    }
-
-    @Override
-    public CvssVersion convertToEntityAttribute(String dbData) {
-        return CvssVersion.fromDbValue(dbData);
+    /** Crea el convertidor para el enum {@link CvssVersion}. */
+    public CvssVersionConverter() {
+        super(CvssVersion.class);
     }
 }

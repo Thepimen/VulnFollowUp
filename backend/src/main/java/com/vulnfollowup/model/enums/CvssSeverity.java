@@ -1,16 +1,17 @@
 package com.vulnfollowup.model.enums;
 
 /**
- * Niveles de gravedad según la puntuación CVSS.
- * Usamos los nombres en español en la lógica de negocio y los relacionamos
- * con los valores del tipo cvss_severity definidos en el script SQL.
+ * Niveles de gravedad derivados de la puntuación CVSS.
+ *
+ * <p>El valor de BD coincide con el nombre de la constante y es el texto exacto que
+ * admite la restricción CHECK de {@code cvss_assessments.severity}.</p>
  */
-public enum CvssSeverity {
-    NINGUNA("None"),
-    BAJA("Low"),
-    MEDIA("Medium"),
-    ALTA("High"),
-    CRITICA("Critical");
+public enum CvssSeverity implements DbValueEnum {
+    NONE("NONE"),
+    LOW("LOW"),
+    MEDIUM("MEDIUM"),
+    HIGH("HIGH"),
+    CRITICAL("CRITICAL");
 
     private final String dbValue;
 
@@ -18,20 +19,25 @@ public enum CvssSeverity {
         this.dbValue = dbValue;
     }
 
+    /**
+     * Devuelve el texto exacto que se guarda en la base de datos.
+     *
+     * @return valor de BD de esta gravedad
+     */
+    @Override
     public String getDbValue() {
         return dbValue;
     }
 
-    // Traduce el valor leído en la tabla CVSS_Assessment al enum de Java
+    /**
+     * Traduce el texto leído de la base de datos o del JSON a la constante del enum.
+     * La comparación es exacta: {@code "critical"} se rechaza.
+     *
+     * @param value texto a traducir; puede ser {@code null}
+     * @return la constante correspondiente, o {@code null} si {@code value} es {@code null}
+     * @throws IllegalArgumentException si el texto no coincide con ningún valor de BD
+     */
     public static CvssSeverity fromDbValue(String value) {
-        if (value == null) {
-            return null;
-        }
-        for (CvssSeverity severity : values()) {
-            if (severity.dbValue.equalsIgnoreCase(value) || severity.name().equalsIgnoreCase(value)) {
-                return severity;
-            }
-        }
-        throw new IllegalArgumentException("Severidad CVSS no reconocida: " + value);
+        return DbValueEnum.fromDbValue(CvssSeverity.class, value);
     }
 }

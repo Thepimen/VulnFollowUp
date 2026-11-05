@@ -8,138 +8,153 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
-import jakarta.persistence.ForeignKey;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
-import jakarta.persistence.OneToOne;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
-import org.hibernate.annotations.JdbcTypeCode;
-import org.hibernate.type.SqlTypes;
+import org.hibernate.annotations.CreationTimestamp;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.time.LocalDate;
+import java.time.OffsetDateTime;
 import java.util.Objects;
 
 /**
- * Entidad que guarda el cálculo de puntuación CVSS (v3.1 o v4.0) de una vulnerabilidad.
- * Se mapea contra la tabla "CVSS_Assessment" de la base de datos.
+ * Evaluación CVSS de una vulnerabilidad (historial 1:N).
+ * Se mapea contra la tabla {@code cvss_assessments} del esquema oficial.
+ * Solo una evaluación por vulnerabilidad puede estar vigente ({@code is_current = TRUE}),
+ * restricción que garantiza el índice {@code uq_cvss_assessments_one_current} de la BD.
  */
 @Entity
-@Table(name = "\"CVSS_Assessment\"")
+@Table(name = "cvss_assessments")
 public class CvssAssessment {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @JdbcTypeCode(SqlTypes.INTEGER)
     @Column(name = "id", nullable = false, updatable = false)
-    private Long id;
+    private Integer id;
 
-    // Versión del estándar CVSS empleada (3.1 o 4.0)
+    // Vulnerabilidad evaluada: cada evaluación pertenece exactamente a una vulnerabilidad
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "vulnerability_id", nullable = false)
+    private Vulnerability vulnerability;
+
+    // Usuario que realizó la evaluación; la columna admite NULL
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "assessed_by")
+    private User assessedBy;
+
+    // Versión del estándar CVSS (Valor_BD "3.1" o "4.0")
     @Convert(converter = CvssVersionConverter.class)
-    @Column(name = "version", length = 10, nullable = false)
-    private CvssVersion version;
+    @Column(name = "cvss_version", length = 10, nullable = false)
+    private CvssVersion cvssVersion;
 
-    // Cadena con el vector técnico oficial (ej: CVSS:3.1/AV:N/AC:L/...)
-    @Column(name = "vector", length = 150, nullable = false)
-    private String baseVector;
+    // Vector técnico oficial (ej: CVSS:3.1/AV:N/AC:L/...)
+    @Column(name = "cvss_vector", length = 180, nullable = false)
+    private String cvssVector;
 
-    // Nota numérica del 0.0 al 10.0 con precisión exacta DECIMAL(3,1) en la BD
-    @JdbcTypeCode(SqlTypes.NUMERIC)
-    @Column(name = "score", nullable = false, precision = 3, scale = 1)
-    private BigDecimal baseScore;
+    // Nota numérica de 0.0 a 10.0 con precisión NUMERIC(3,1)
+    @Column(name = "cvss_score", nullable = false, precision = 3, scale = 1)
+    private BigDecimal cvssScore;
 
-    // Nivel de gravedad en texto (NINGUNA, BAJA, MEDIA, ALTA, CRITICA)
+    // Severidad (NONE, LOW, MEDIUM, HIGH, CRITICAL)
     @Convert(converter = CvssSeverityConverter.class)
     @Column(name = "severity", length = 20, nullable = false)
     private CvssSeverity severity;
 
-    @Column(name = "assessment_date", nullable = false)
-    private LocalDate assessmentDate = LocalDate.now();
+    // Indica si es la evaluación vigente de la vulnerabilidad
+    @Column(name = "is_current", nullable = false)
+    private boolean current = true;
 
-    // Clave foránea id_vulnerability que une esta evaluación con su vulnerabilidad (1:1 en LAZY)
-    @OneToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(
-            name = "id_vulnerability",
-            nullable = false,
-            unique = true,
-            foreignKey = @ForeignKey(name = "fk_vulnerability_cvss")
-    )
-    private Vulnerability vulnerability;
+    // Momento de la evaluación, asignado por Hibernate al insertar
+    @CreationTimestamp
+    @Column(name = "assessed_at", nullable = false, updatable = false)
+    private OffsetDateTime assessedAt;
 
     public CvssAssessment() {
     }
 
     public CvssAssessment(
-            CvssVersion version,
-            String baseVector,
-            BigDecimal baseScore,
+            Vulnerability vulnerability,
+            User assessedBy,
+            CvssVersion cvssVersion,
+            String cvssVector,
+            BigDecimal cvssScore,
             CvssSeverity severity,
-            LocalDate assessmentDate,
-            Vulnerability vulnerability
+            boolean current
     ) {
-        this.version = version;
-        this.baseVector = baseVector;
-        this.baseScore = baseScore != null ? baseScore.setScale(1, RoundingMode.HALF_UP) : null;
-        this.severity = severity;
-        this.assessmentDate = assessmentDate != null ? assessmentDate : LocalDate.now();
         this.vulnerability = vulnerability;
+        this.assessedBy = assessedBy;
+        this.cvssVersion = cvssVersion;
+        this.cvssVector = cvssVector;
+        setCvssScore(cvssScore);
+        this.severity = severity;
+        this.current = current;
     }
 
-    public CvssAssessment(
-            CvssVersion version,
-            String baseVector,
-            Double baseScore,
-            CvssSeverity severity,
-            LocalDate assessmentDate,
-            Vulnerability vulnerability
-    ) {
-        this(
-                version,
-                baseVector,
-                baseScore != null ? BigDecimal.valueOf(baseScore).setScale(1, RoundingMode.HALF_UP) : null,
-                severity,
-                assessmentDate,
-                vulnerability
+    /**
+     * Crea la Evaluacion_Vigente copiando la Instantanea_CVSS de la vulnerabilidad.
+     * Solo asigna el campo {@code vulnerability}; no se añade a {@code vulnerability.assessments}
+     * porque las evaluaciones se guardan con su propio repositorio, sin cascada.
+     */
+    public static CvssAssessment currentFor(Vulnerability vulnerability, User assessor) {
+        Objects.requireNonNull(vulnerability, "vulnerability");
+        return new CvssAssessment(
+                vulnerability,
+                assessor,
+                vulnerability.getCvssVersion(),
+                vulnerability.getCvssVector(),
+                vulnerability.getCvssScore(),
+                vulnerability.getSeverity(),
+                true
         );
     }
 
-    public Long getId() {
+    public Integer getId() {
         return id;
     }
 
-    public void setId(Long id) {
-        this.id = id;
+    public Vulnerability getVulnerability() {
+        return vulnerability;
     }
 
-    public CvssVersion getVersion() {
-        return version;
+    public void setVulnerability(Vulnerability vulnerability) {
+        this.vulnerability = vulnerability;
     }
 
-    public void setVersion(CvssVersion version) {
-        this.version = version;
+    public User getAssessedBy() {
+        return assessedBy;
     }
 
-    public String getBaseVector() {
-        return baseVector;
+    public void setAssessedBy(User assessedBy) {
+        this.assessedBy = assessedBy;
     }
 
-    public void setBaseVector(String baseVector) {
-        this.baseVector = baseVector;
+    public CvssVersion getCvssVersion() {
+        return cvssVersion;
     }
 
-    public BigDecimal getBaseScore() {
-        return baseScore;
+    public void setCvssVersion(CvssVersion cvssVersion) {
+        this.cvssVersion = cvssVersion;
     }
 
-    public void setBaseScore(BigDecimal baseScore) {
-        this.baseScore = baseScore != null ? baseScore.setScale(1, RoundingMode.HALF_UP) : null;
+    public String getCvssVector() {
+        return cvssVector;
     }
 
-    public void setBaseScore(Double baseScore) {
-        this.baseScore = baseScore != null ? BigDecimal.valueOf(baseScore).setScale(1, RoundingMode.HALF_UP) : null;
+    public void setCvssVector(String cvssVector) {
+        this.cvssVector = cvssVector;
+    }
+
+    public BigDecimal getCvssScore() {
+        return cvssScore;
+    }
+
+    // Normaliza la nota a un decimal (escala de la columna NUMERIC(3,1))
+    public void setCvssScore(BigDecimal cvssScore) {
+        this.cvssScore = cvssScore != null ? cvssScore.setScale(1, RoundingMode.HALF_UP) : null;
     }
 
     public CvssSeverity getSeverity() {
@@ -150,20 +165,16 @@ public class CvssAssessment {
         this.severity = severity;
     }
 
-    public LocalDate getAssessmentDate() {
-        return assessmentDate;
+    public boolean isCurrent() {
+        return current;
     }
 
-    public void setAssessmentDate(LocalDate assessmentDate) {
-        this.assessmentDate = assessmentDate;
+    public void setCurrent(boolean current) {
+        this.current = current;
     }
 
-    public Vulnerability getVulnerability() {
-        return vulnerability;
-    }
-
-    public void setVulnerability(Vulnerability vulnerability) {
-        this.vulnerability = vulnerability;
+    public OffsetDateTime getAssessedAt() {
+        return assessedAt;
     }
 
     @Override

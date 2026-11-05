@@ -1,162 +1,159 @@
 package com.vulnfollowup.model;
 
+import java.time.OffsetDateTime;
+import java.util.Objects;
+
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.Immutable;
+
 import com.vulnfollowup.model.converter.VulnerabilityStatusConverter;
 import com.vulnfollowup.model.enums.VulnerabilityStatus;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
-import jakarta.persistence.ForeignKey;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
-import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
-import org.hibernate.annotations.JdbcTypeCode;
-import org.hibernate.type.SqlTypes;
-
-import java.time.LocalDateTime;
-import java.util.Objects;
 
 /**
- * Entidad de auditoría (tabla "Remediation_Audit").
- * Registra cada cambio de estado en el ciclo de vida de una vulnerabilidad:
- * quién realizó el cambio (id_user), el estado anterior, el estado nuevo,
- * el motivo/justificación técnica y la fecha y hora exacta.
+ * Registro de auditoría: una fila por cada acción relevante sobre una vulnerabilidad
+ * (alta o cambio de estado), con quién la hizo, los estados anterior y nuevo, la
+ * justificación y la fecha.
+ *
+ * <p>Mapea la tabla {@code audit_logs}, que es de <b>solo inserción</b>: el Esquema_Oficial
+ * define triggers ({@code fn_audit_logs_append_only}) que rechazan cualquier UPDATE o DELETE
+ * sobre sus filas. Por eso la entidad está anotada con {@link Immutable}: Hibernate nunca
+ * genera UPDATE para ella aunque se modifique el objeto en memoria (el "dirty checking" la
+ * ignora), y así no se dispara el trigger por accidente al hacer {@code flush}.</p>
+ *
+ * <p>Por la misma razón no hay setters: los datos se fijan una sola vez en el constructor.</p>
  */
 @Entity
-@Table(name = "\"Remediation_Audit\"")
+@Immutable
+@Table(name = "audit_logs")
 public class AuditLog {
+
+    /** Tipo de acción usado al registrar el alta de una vulnerabilidad. */
+    public static final String ACTION_VULNERABILITY_CREATED = "VULNERABILITY_CREATED";
+
+    /** Tipo de acción usado al registrar un cambio de estado. */
+    public static final String ACTION_STATUS_TRANSITION = "STATUS_TRANSITION";
+
+    /** Tipo de acción usado al registrar una re-evaluación CVSS (1:N en cvss_assessments). */
+    public static final String ACTION_CVSS_REASSESSMENT = "CVSS_REASSESSMENT";
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @JdbcTypeCode(SqlTypes.INTEGER)
     @Column(name = "id", nullable = false, updatable = false)
-    private Long id;
+    private Integer id;
 
-    // Vulnerabilidad auditada (carga LAZY para evitar consultas innecesarias)
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(
-            name = "id_vulnerability",
-            nullable = false,
-            foreignKey = @ForeignKey(name = "fk_vulnerability_audit")
-    )
+    // Vulnerabilidad auditada. Es opcional porque la columna admite NULL en el esquema.
+    // LAZY: la vulnerabilidad solo se carga si se accede a ella
+    @ManyToOne(fetch = FetchType.LAZY, optional = true)
+    @JoinColumn(name = "vulnerability_id", nullable = true)
     private Vulnerability vulnerability;
 
-    // Usuario que ejecutó la acción o el cambio de estado
+    // Usuario que realizó la acción (obligatorio)
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(
-            name = "id_user",
-            nullable = false,
-            foreignKey = @ForeignKey(name = "fk_user_audit")
-    )
+    @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    // Motivo o justificación técnica del cambio de estado
-    @Column(name = "comment", columnDefinition = "TEXT")
-    private String comment;
+    // Tipo de acción: ACTION_VULNERABILITY_CREATED o ACTION_STATUS_TRANSITION
+    @Column(name = "action_type", length = 40, nullable = false)
+    private String actionType;
 
-    // Estado previo de la vulnerabilidad (puede ser null cuando se registra por primera vez)
+    // Estado antes de la acción (NULL en el alta, porque no había estado previo).
+    // El convertidor guarda el texto exacto que admite la CHECK del esquema
     @Convert(converter = VulnerabilityStatusConverter.class)
-    @Column(name = "previous_status", length = 30)
+    @Column(name = "previous_status", length = 30, nullable = true)
     private VulnerabilityStatus previousStatus;
 
-    // Nuevo estado tras la transición
+    // Estado tras la acción. La columna admite NULL en el esquema, así que se mapea igual
     @Convert(converter = VulnerabilityStatusConverter.class)
-    @Column(name = "new_status", length = 30, nullable = false)
+    @Column(name = "new_status", length = 30, nullable = true)
     private VulnerabilityStatus newStatus;
 
-    @Column(name = "audit_date", nullable = false)
-    private LocalDateTime auditDate = LocalDateTime.now();
+    // Motivo o justificación técnica de la acción (obligatorio)
+    @Column(name = "justification", columnDefinition = "text", nullable = false)
+    private String justification;
 
-    public AuditLog() {
+    // Hibernate la rellena al insertar; nunca se actualiza
+    @CreationTimestamp
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private OffsetDateTime createdAt;
+
+    // Constructor sin argumentos exigido por JPA. Es protected para que el código de la
+    // aplicación use siempre el constructor completo
+    protected AuditLog() {
     }
 
-    public AuditLog(
-            Vulnerability vulnerability,
-            User user,
-            VulnerabilityStatus previousStatus,
-            VulnerabilityStatus newStatus,
-            String comment
-    ) {
+    /**
+     * Crea un registro de auditoría con todos sus datos.
+     *
+     * @param vulnerability  vulnerabilidad afectada (puede ser {@code null})
+     * @param user           usuario que realiza la acción
+     * @param actionType     tipo de acción ({@link #ACTION_VULNERABILITY_CREATED} o
+     *                       {@link #ACTION_STATUS_TRANSITION})
+     * @param previousStatus estado anterior ({@code null} en el alta)
+     * @param newStatus      estado nuevo
+     * @param justification  justificación de la acción
+     */
+    public AuditLog(Vulnerability vulnerability, User user, String actionType,
+                    VulnerabilityStatus previousStatus, VulnerabilityStatus newStatus,
+                    String justification) {
         this.vulnerability = vulnerability;
         this.user = user;
+        this.actionType = actionType;
         this.previousStatus = previousStatus;
         this.newStatus = newStatus;
-        this.comment = comment;
-        this.auditDate = LocalDateTime.now();
+        this.justification = justification;
     }
 
-    @PrePersist
-    protected void onCreate() {
-        if (this.auditDate == null) {
-            this.auditDate = LocalDateTime.now();
-        }
-    }
+    // ---- Solo getters (entidad inmutable) ----
 
-    public Long getId() {
+    public Integer getId() {
         return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
     }
 
     public Vulnerability getVulnerability() {
         return vulnerability;
     }
 
-    public void setVulnerability(Vulnerability vulnerability) {
-        this.vulnerability = vulnerability;
-    }
-
     public User getUser() {
         return user;
     }
 
-    public void setUser(User user) {
-        this.user = user;
-    }
-
-    public String getComment() {
-        return comment;
-    }
-
-    public void setComment(String comment) {
-        this.comment = comment;
+    public String getActionType() {
+        return actionType;
     }
 
     public VulnerabilityStatus getPreviousStatus() {
         return previousStatus;
     }
 
-    public void setPreviousStatus(VulnerabilityStatus previousStatus) {
-        this.previousStatus = previousStatus;
-    }
-
     public VulnerabilityStatus getNewStatus() {
         return newStatus;
     }
 
-    public void setNewStatus(VulnerabilityStatus newStatus) {
-        this.newStatus = newStatus;
+    public String getJustification() {
+        return justification;
     }
 
-    public LocalDateTime getAuditDate() {
-        return auditDate;
+    public OffsetDateTime getCreatedAt() {
+        return createdAt;
     }
 
-    public void setAuditDate(LocalDateTime auditDate) {
-        this.auditDate = auditDate;
-    }
-
+    // equals por id no nulo y hashCode constante por clase, igual que en el resto de entidades
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof AuditLog auditLog)) return false;
-        return id != null && Objects.equals(id, auditLog.id);
+        if (!(o instanceof AuditLog that)) return false;
+        return id != null && Objects.equals(id, that.getId());
     }
 
     @Override

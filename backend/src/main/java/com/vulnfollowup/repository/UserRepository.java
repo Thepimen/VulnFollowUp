@@ -1,18 +1,17 @@
 package com.vulnfollowup.repository;
 
-import com.vulnfollowup.model.User;
-import com.vulnfollowup.model.enums.UserRole;
+import java.util.Optional;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
-import java.util.Optional;
+import com.vulnfollowup.model.User;
 
 /**
- * Repositorio JPA para gestionar las operaciones de acceso a datos de los usuarios.
+ * Repositorio JPA para gestionar las operaciones de acceso a datos de los usuarios (tabla users).
  */
 @Repository
-public interface UserRepository extends JpaRepository<User, Long> {
+public interface UserRepository extends JpaRepository<User, Integer> {
 
     // Busca un usuario por su nombre de usuario único para el proceso de login
     Optional<User> findByUsername(String username);
@@ -20,6 +19,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
     // Comprueba si ya existe un nombre de usuario antes de registrar uno nuevo
     boolean existsByUsername(String username);
 
-    // Filtra usuarios según su rol en el sistema (ADMIN, ANALYST, VIEWER)
-    List<User> findByRole(UserRole role);
+    // Comprueba si ya existe un email antes de registrar un usuario nuevo
+    boolean existsByEmail(String email);
 }

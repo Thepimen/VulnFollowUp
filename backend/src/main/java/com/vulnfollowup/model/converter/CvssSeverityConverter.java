@@ -1,23 +1,24 @@
 package com.vulnfollowup.model.converter;
 
 import com.vulnfollowup.model.enums.CvssSeverity;
-import jakarta.persistence.AttributeConverter;
+
 import jakarta.persistence.Converter;
 
 /**
- * Convertidor de JPA que transforma la severidad de Java (NINGUNA, BAJA, MEDIA, ALTA, CRITICA)
- * al formato que tiene la tabla CVSS_Assessment en la base de datos (None, Low, Medium, High, Critical).
+ * Convertidor JPA para {@link CvssSeverity}.
+ *
+ * <p>Traduce entre las constantes del enum y el texto exacto de la columna
+ * {@code cvss_assessments.severity} ({@code NONE}, {@code LOW}, {@code MEDIUM},
+ * {@code HIGH} o {@code CRITICAL}).</p>
+ *
+ * <p>Con {@code autoApply = true}, Hibernate lo aplica a todos los atributos de tipo
+ * {@link CvssSeverity} sin necesidad de anotar cada campo.</p>
  */
 @Converter(autoApply = true)
-public class CvssSeverityConverter implements AttributeConverter<CvssSeverity, String> {
+public class CvssSeverityConverter extends DbValueEnumConverter<CvssSeverity> {
 
-    @Override
-    public String convertToDatabaseColumn(CvssSeverity attribute) {
-        return attribute != null ? attribute.getDbValue() : null;
-    }
-
-    @Override
-    public CvssSeverity convertToEntityAttribute(String dbData) {
-        return CvssSeverity.fromDbValue(dbData);
+    /** Crea el convertidor para el enum {@link CvssSeverity}. */
+    public CvssSeverityConverter() {
+        super(CvssSeverity.class);
     }
 }
