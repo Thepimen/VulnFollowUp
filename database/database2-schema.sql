@@ -38,13 +38,15 @@ CREATE TABLE "Asset" (
 
 CREATE TABLE "Vulnerability" (
     id SERIAL PRIMARY KEY,
-    cve_identifier VARCHAR(50) NOT NULL,
+    cve_identifier VARCHAR(50) UNIQUE NOT NULL,
     title VARCHAR(150) NOT NULL,
     description TEXT NOT NULL,
     registration_date DATE NOT NULL,
     remediation_status remediation_status DEFAULT 'OPEN',
     id_assignee INT,
     target_date DATE,
+    remediation_evidence TEXT,
+    version BIGINT NOT NULL DEFAULT 0,
     CONSTRAINT fk_assignee FOREIGN KEY (id_assignee) REFERENCES "User"(id) ON DELETE SET NULL
 );
 
@@ -59,7 +61,7 @@ CREATE TABLE "Asset_Vulnerability" (
 
 CREATE TABLE "CVSS_Assessment" (
     id SERIAL PRIMARY KEY,
-    id_vulnerability INT NOT NULL,
+    id_vulnerability INT UNIQUE NOT NULL,
     version cvss_version NOT NULL,
     vector VARCHAR(150) NOT NULL,
     score DECIMAL(3,1) NOT NULL,

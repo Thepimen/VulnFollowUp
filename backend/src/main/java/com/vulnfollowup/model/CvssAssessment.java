@@ -18,6 +18,8 @@ import jakarta.persistence.Table;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.util.Objects;
 
@@ -44,10 +46,10 @@ public class CvssAssessment {
     @Column(name = "vector", length = 150, nullable = false)
     private String baseVector;
 
-    // Nota numérica del 0.0 al 10.0 (mapeada a DECIMAL(3,1) en la BD)
+    // Nota numérica del 0.0 al 10.0 con precisión exacta DECIMAL(3,1) en la BD
     @JdbcTypeCode(SqlTypes.NUMERIC)
-    @Column(name = "score", nullable = false)
-    private Double baseScore;
+    @Column(name = "score", nullable = false, precision = 3, scale = 1)
+    private BigDecimal baseScore;
 
     // Nivel de gravedad en texto (NINGUNA, BAJA, MEDIA, ALTA, CRITICA)
     @Convert(converter = CvssSeverityConverter.class)
@@ -73,17 +75,35 @@ public class CvssAssessment {
     public CvssAssessment(
             CvssVersion version,
             String baseVector,
-            Double baseScore,
+            BigDecimal baseScore,
             CvssSeverity severity,
             LocalDate assessmentDate,
             Vulnerability vulnerability
     ) {
         this.version = version;
         this.baseVector = baseVector;
-        this.baseScore = baseScore;
+        this.baseScore = baseScore != null ? baseScore.setScale(1, RoundingMode.HALF_UP) : null;
         this.severity = severity;
         this.assessmentDate = assessmentDate != null ? assessmentDate : LocalDate.now();
         this.vulnerability = vulnerability;
+    }
+
+    public CvssAssessment(
+            CvssVersion version,
+            String baseVector,
+            Double baseScore,
+            CvssSeverity severity,
+            LocalDate assessmentDate,
+            Vulnerability vulnerability
+    ) {
+        this(
+                version,
+                baseVector,
+                baseScore != null ? BigDecimal.valueOf(baseScore).setScale(1, RoundingMode.HALF_UP) : null,
+                severity,
+                assessmentDate,
+                vulnerability
+        );
     }
 
     public Long getId() {
@@ -110,12 +130,16 @@ public class CvssAssessment {
         this.baseVector = baseVector;
     }
 
-    public Double getBaseScore() {
+    public BigDecimal getBaseScore() {
         return baseScore;
     }
 
+    public void setBaseScore(BigDecimal baseScore) {
+        this.baseScore = baseScore != null ? baseScore.setScale(1, RoundingMode.HALF_UP) : null;
+    }
+
     public void setBaseScore(Double baseScore) {
-        this.baseScore = baseScore;
+        this.baseScore = baseScore != null ? BigDecimal.valueOf(baseScore).setScale(1, RoundingMode.HALF_UP) : null;
     }
 
     public CvssSeverity getSeverity() {
