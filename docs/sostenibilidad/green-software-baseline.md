@@ -19,14 +19,14 @@ De acuerdo con la especificación [`docs/api/openapi.yaml`](../api/openapi.yaml)
 
 En un entorno productivo de una entidad financiera sujeta a DORA que acumula **5.000 vulnerabilidades históricas** en su base de datos, comparamos el impacto de una consulta al endpoint `GET /api/vulnerabilities` bajo dos escenarios:
 - **Escenario A (Antipatrón — Sin Paginación)**: El servidor serializa y transmite los 5.000 registros completos en cada carga o cambio de filtro.
-- **Escenario B (Arquitectura VulnFollowUp — Paginación Estricta `size=20` + Índices Compuestos)**: El servidor aplica `LIMIT 20 OFFSET 0` apoyándose en el índice compuesto `idx_vulnerabilities_status_created` y `idx_cvss_Current_severity_score`, devolviendo únicamente la página activa dentro de la envolvente `PageResponse<VulnerabilitySummary>`.
+- **Escenario B (Arquitectura VulnFollowUp — Paginación Estricta `size=20` + Índices Compuestos)**: El servidor aplica `LIMIT 20 OFFSET 0` apoyándose en los índices compuestos `idx_vuln_status_severity_score` e `idx_vuln_discovered_pagination`, devolviendo únicamente la página activa dentro de la envolvente `PageResponse<VulnerabilitySummary>`.
 
 ### 2.2 Tabla Comparativa de Eficiencia (Por Petición y Proyección Mensual)
 
 | Métrica de Eficiencia (Green KPI) | Escenario A: Sin Paginación (5.000 registros/petición) | Escenario B: Paginado VulnFollowUp (`size=20` registros/petición) | Reducción / Ahorro Logrado |
 | :--- | :--- | :--- | :--- |
 | **Tamaño del Payload JSON por petición** | `~2.260.000 bytes` (**2,26 MB**) | `~9.180 bytes` (**9,18 KB** incl. metadatos de página) | **-99,59 % de tráfico de red** |
-| **Filas leídas en PostgreSQL (Heap Scan)** | `5.000 filas` (*Sequential Scan* + *Sort* en memoria) | `20 filas` (*Index Scan* directo sobre `idx_vulnerabilities_status_created`) | **-99,60 % de I/O de disco y CPU BD** |
+| **Filas leídas en PostgreSQL (Heap Scan)** | `5.000 filas` (*Sequential Scan* + *Sort* en memoria) | `20 filas` (*Index Scan* directo sobre `idx_vuln_status_severity_score`) | **-99,60 % de I/O de disco y CPU BD** |
 | **Nodos DOM renderizados en el navegador (React)** | `> 45.000 nodos DOM` (5.000 filas x 9 celdas) | `~180 nodos DOM` (20 filas x 9 celdas) | **-99,60 % de memoria RAM de renderizado** |
 | **Tráfico mensual estimado** *(10 analistas x 80 consultas/día x 22 días laborables = 17.600 peticiones/mes)* | **39,78 GB / mes** transferidos | **161,57 MB / mes** transferidos | **Ahorro de 39,62 GB / mes** |
 | **Consumo energético de red y procesado estimado** *(modelo Shift Project / Green Web Foundation: ~0,81 kWh/GB en red + terminal)* | `~32,22 kWh / mes` (`~13,5 kg CO2e/mes`) | `~0,13 kWh / mes` (`~0,05 kg CO2e/mes`) | **-99,59 % en huella de carbono operativa** |
@@ -41,9 +41,10 @@ En un entorno productivo de una entidad financiera sujeta a DORA que acumula **5
 
 ### Medida 2: Índices Compuestos de Cobertura en PostgreSQL (`01_schema.sql`)
 - Para evitar que la base de datos escanee tablas completas al filtrar por estado, severidad o proveedor TIC, [`database/schema/01_schema.sql`](../../database/schema/01_schema.sql) incorpora índices específicos orientados a las consultas frecuentes de la UI:
-  - `idx_vulnerabilities_status_created (status, created_at DESC)`
-  - `idx_cvss_current_severity_score (severity, base_score DESC) WHERE is_current = TRUE`
-  - `idx_ict_providers_criticality_review (criticality, next_review_date)`
+  - `idx_vuln_status_severity_score (status, severity, cvss_score DESC, id ASC)`
+  - `idx_vuln_discovered_pagination (discovered_at DESC, id DESC)`
+  - `uq_cvss_assessments_one_current (vulnerability_id) WHERE is_current`
+  - `idx_ict_providers_review_criticality (criticality, review_date ASC)`
 - **Resultado**: Complejidad algorítmica de búsqueda reducida de `O(N)` a `O(log N)`, minimizando los ciclos de CPU del servidor de base de datos.
 
 ### Medida 3: Caché Local Offline-First (`Room` en Android y Estado Hidratado en SPA)
