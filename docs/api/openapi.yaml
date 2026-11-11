@@ -1,0 +1,1256 @@
+openapi: 3.1.0
+info:
+  title: VulnFollowUp Defensive Vulnerability & EU DORA ICT Provider API
+  version: 1.0.0
+  summary: >-
+    RESTful API contract for VulnFollowUp aligned with the 3NF PostgreSQL schema,
+    FIRST CVSS Base v3.1/v4.0 validation rules, EU DORA Regulation (Chapter V),
+    and Green Software server-side pagination standards.
+  contact:
+    name: VulnFollowUp DevSecOps Architecture Team (DAM 2)
+    email: ciso.admin@vulnfollowup.eu
+  license:
+    name: Apache-2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0
+
+servers:
+  - url: http://localhost:8080
+    description: Local Development Server (Java Backend)
+  - url: https://api.vulnfollowup.internal
+    description: Production Enterprise Intranet Gateway (TLS 1.3 Enforced)
+
+tags:
+  - name: Authentication
+    description: JWT authentication and RBAC session establishment (`ADMIN`, `ANALYST`, `VIEWER`).
+  - name: Dashboard
+    description: Executive KPI aggregations across vulnerabilities, assets, and DORA ICT providers.
+  - name: Vulnerabilities
+    description: Paginated CVE/VFU registry, lifecycle state machine, CVSS v3.1/v4.0 assessments, and ExecutorService batch import.
+  - name: Assets
+    description: Technological asset inventory linked to third-party ICT providers.
+  - name: ICT Providers (DORA)
+    description: EU DORA Chapter V third-party ICT provider governance and supply-chain risk reports.
+  - name: Reports (PSP)
+    description: Executive CSV and HTML report generation via OS ProcessBuilder.
+
+security:
+  - BearerAuth: []
+
+paths:
+  /api/auth/login:
+    post:
+      tags: [Authentication]
+      operationId: loginUser
+      summary: Authenticate user credentials and issue a signed RFC 7519 JWT
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Authenticated successfully; returns JWT and operator profile
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /api/dashboard/summary:
+    get:
+      tags: [Dashboard]
+      operationId: getDashboardSummary
+      summary: Retrieve executive aggregations by severity, lifecycle status, and DORA providers at risk
+      description: Accessible to `ADMIN`, `ANALYST`, and `VIEWER`.
+      responses:
+        '200':
+          description: Aggregated dashboard metrics
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DashboardSummaryResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /api/assets:
+    get:
+      tags: [Assets]
+      operationId: listAssets
+      summary: List technological assets with optional filtering and pagination
+      description: Accessible to `ADMIN`, `ANALYST`, and `VIEWER`.
+      parameters:
+        - name: providerId
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+        - name: criticality
+          in: query
+          schema:
+            $ref: '#/components/schemas/AssetCriticality'
+        - name: environment
+          in: query
+          schema:
+            $ref: '#/components/schemas/AssetEnvironment'
+        - name: search
+          in: query
+          schema:
+            type: string
+            maxLength: 100
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/SizeParam'
+      responses:
+        '200':
+          description: Paginated list of technological assets
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedAssetResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+    post:
+      tags: [Assets]
+      operationId: createAsset
+      summary: Register a new technological asset linked to an ICT provider
+      description: Restricted to `ADMIN` and `ANALYST`. `VIEWER` receives `403 Forbidden`.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AssetCreateRequest'
+      responses:
+        '201':
+          description: Technological asset created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AssetDTO'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '409':
+          $ref: '#/components/responses/ConflictError'
+
+  /api/vulnerabilities:
+    get:
+      tags: [Vulnerabilities]
+      operationId: listVulnerabilities
+      summary: Search and filter vulnerabilities with mandatory Green Software server-side pagination
+      description: >-
+        Supports combined filtering across `severity`, `status`, `assetId`,
+        `providerId`, `assignedTo`, `minScore`, `maxScore`, and `search`.
+        Enforces server-side pagination (`page`, `size <= 100`, `sort`) to prevent
+        unbounded payload transfers. Accessible to `ADMIN`, `ANALYST`, and `VIEWER`.
+      parameters:
+        - name: severity
+          in: query
+          schema:
+            $ref: '#/components/schemas/CvssSeverity'
+        - name: status
+          in: query
+          schema:
+            $ref: '#/components/schemas/VulnerabilityStatus'
+        - name: assetId
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+        - name: providerId
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+        - name: assignedTo
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+        - name: minScore
+          in: query
+          schema:
+            type: number
+            minimum: 0.0
+            maximum: 10.0
+        - name: maxScore
+          in: query
+          schema:
+            type: number
+            minimum: 0.0
+            maximum: 10.0
+        - name: search
+          in: query
+          description: Case-insensitive substring match against `internal_code`, `cve_id`, or `title`.
+          schema:
+            type: string
+            maxLength: 100
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/SizeParam'
+        - $ref: '#/components/parameters/SortParam'
+      responses:
+        '200':
+          description: Paginated vulnerability slice
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedVulnerabilityResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+    post:
+      tags: [Vulnerabilities]
+      operationId: createVulnerability
+      summary: Register a new vulnerability with strict CVSS Base v3.1/v4.0 validation and N:M asset links
+      description: Restricted to `ADMIN` and `ANALYST`.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VulnerabilityCreateRequest'
+      responses:
+        '201':
+          description: Vulnerability registered in initial state `ABIERTA`
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VulnerabilityDetailDTO'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '409':
+          $ref: '#/components/responses/ConflictError'
+
+  /api/vulnerabilities/{id}:
+    get:
+      tags: [Vulnerabilities]
+      operationId: getVulnerabilityById
+      summary: Retrieve full vulnerability detail including affected assets, CVSS history, comments, and audit trail
+      parameters:
+        - $ref: '#/components/parameters/IdPathParam'
+      responses:
+        '200':
+          description: Detailed vulnerability record
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VulnerabilityDetailDTO'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+
+  /api/vulnerabilities/{id}/status:
+    patch:
+      tags: [Vulnerabilities]
+      operationId: updateVulnerabilityStatus
+      summary: Transition vulnerability lifecycle status and record immutable audit log + follow-up comment
+      description: >-
+        Enforces the sequential lifecycle `ABIERTA -> PENDIENTE DE REMEDIACIÓN -> RESUELTA -> CERRADA`.
+        `ANALYST` can transition up to `RESUELTA`; only `ADMIN` can transition to `CERRADA`.
+      parameters:
+        - $ref: '#/components/parameters/IdPathParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StatusTransitionRequest'
+      responses:
+        '200':
+          description: Status updated and audit log appended
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VulnerabilityDetailDTO'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '409':
+          $ref: '#/components/responses/ConflictError'
+
+  /api/vulnerabilities/{id}/assessment:
+    post:
+      tags: [Vulnerabilities]
+      operationId: addCvssAssessment
+      summary: Append a new CVSS Base (v3.1 or v4.0) evaluation and update the vulnerability's current score
+      description: Restricted to `ADMIN` and `ANALYST`. Rejects version-vector or score-severity mismatches with `400 Bad Request`.
+      parameters:
+        - $ref: '#/components/parameters/IdPathParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CvssAssessmentCreateRequest'
+      responses:
+        '201':
+          description: CVSS assessment persisted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CvssAssessmentDTO'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+
+  /api/vulnerabilities/import:
+    post:
+      tags: [Vulnerabilities]
+      operationId: importVulnerabilitiesBatch
+      summary: Execute concurrent batch import via ExecutorService with ACID transactional rollback protection
+      description: >-
+        Restricted to `ADMIN` and `ANALYST`. Processes a JSON batch of vulnerabilities
+        using `ExecutorService` validation threads and persists inside an ACID transaction.
+        If any record violates CVSS coherence (e.g., `vulnerabilities_invalid_rollback_test.json`),
+        the entire transaction is rolled back (`rolledBack: true`).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BatchImportRequest'
+      responses:
+        '200':
+          description: Batch import completed and committed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BatchImportResultResponse'
+        '400':
+          description: Validation error in batch; full ACID transaction rollback executed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BatchImportResultResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+
+  /api/reports/export:
+    get:
+      tags: [Reports (PSP)]
+      operationId: exportExecutiveReport
+      summary: Generate and download an executive CSV or HTML report via OS ProcessBuilder
+      description: Restricted to `ADMIN` and `ANALYST`. Spawns an isolated OS process via `ProcessBuilder`.
+      parameters:
+        - name: format
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [CSV, HTML]
+        - name: severity
+          in: query
+          schema:
+            $ref: '#/components/schemas/CvssSeverity'
+        - name: status
+          in: query
+          schema:
+            $ref: '#/components/schemas/VulnerabilityStatus'
+        - name: providerId
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+      responses:
+        '200':
+          description: Generated report stream
+          content:
+            text/csv:
+              schema:
+                type: string
+            text/html:
+              schema:
+                type: string
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+
+  /api/providers:
+    get:
+      tags: [ICT Providers (DORA)]
+      operationId: listProviders
+      summary: List third-party ICT providers with computed EU DORA risk exposure status
+      description: Accessible to `ADMIN`, `ANALYST`, and `VIEWER`.
+      parameters:
+        - name: criticality
+          in: query
+          schema:
+            $ref: '#/components/schemas/ProviderCriticality'
+        - name: contractStatus
+          in: query
+          schema:
+            $ref: '#/components/schemas/ContractStatus'
+        - name: atRiskOnly
+          in: query
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: List of ICT providers with live DORA risk status
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/IctProviderDTO'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+    post:
+      tags: [ICT Providers (DORA)]
+      operationId: createProvider
+      summary: Register a new third-party ICT service provider under EU DORA Chapter V
+      description: Strictly restricted to `ADMIN`. `ANALYST` and `VIEWER` receive `403 Forbidden`.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/IctProviderUpsertRequest'
+      responses:
+        '201':
+          description: ICT provider created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IctProviderDTO'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '409':
+          $ref: '#/components/responses/ConflictError'
+
+  /api/providers/{id}:
+    put:
+      tags: [ICT Providers (DORA)]
+      operationId: updateProvider
+      summary: Update an ICT provider's contract status, review date, or criticality
+      description: Strictly restricted to `ADMIN`. `ANALYST` and `VIEWER` receive `403 Forbidden`.
+      parameters:
+        - $ref: '#/components/parameters/IdPathParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/IctProviderUpsertRequest'
+      responses:
+        '200':
+          description: ICT provider updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IctProviderDTO'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+
+  /api/providers/{id}/report:
+    get:
+      tags: [ICT Providers (DORA)]
+      operationId: getProviderDoraReport
+      summary: Generate the EU DORA Supply-Chain Risk & Pending Vulnerabilities Report for an ICT provider
+      description: >-
+        Accessible to `ADMIN`, `ANALYST`, and `VIEWER`. Automatically flags the
+        provider with `doraRiskStatus: "AT_RISK"` (`EN RIESGO`) when any of its
+        managed assets have `CRITICAL` or `HIGH` vulnerabilities in state `ABIERTA`
+        or `PENDIENTE DE REMEDIACIÓN` (e.g., `HostingSur S.L.` -> `API de pagos` -> `VFU-0012`).
+      parameters:
+        - $ref: '#/components/parameters/IdPathParam'
+      responses:
+        '200':
+          description: DORA third-party risk evaluation report
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProviderDoraReportDTO'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  parameters:
+    IdPathParam:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: integer
+        minimum: 1
+    PageParam:
+      name: page
+      in: query
+      description: Zero-based page index (Green Software pagination).
+      schema:
+        type: integer
+        minimum: 0
+        default: 0
+    SizeParam:
+      name: size
+      in: query
+      description: Maximum records per page (capped at 100 to prevent payload bloat).
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 10
+    SortParam:
+      name: sort
+      in: query
+      description: Sort field and direction (`cvssScore,desc`, `discoveredAt,desc`, `internalCode,asc`).
+      schema:
+        type: string
+        default: cvssScore,desc
+        enum:
+          - cvssScore,desc
+          - cvssScore,asc
+          - discoveredAt,desc
+          - discoveredAt,asc
+          - internalCode,asc
+          - internalCode,desc
+
+  schemas:
+    UserRole:
+      type: string
+      enum: [ADMIN, ANALYST, VIEWER]
+
+    VulnerabilityStatus:
+      type: string
+      enum:
+        - ABIERTA
+        - PENDIENTE DE REMEDIACIÓN
+        - RESUELTA
+        - CERRADA
+
+    CvssVersion:
+      type: string
+      enum: ['3.1', '4.0']
+
+    CvssSeverity:
+      type: string
+      enum: [NONE, LOW, MEDIUM, HIGH, CRITICAL]
+
+    ProviderCriticality:
+      type: string
+      enum: [LOW, MEDIUM, HIGH, CRITICAL]
+
+    ContractStatus:
+      type: string
+      enum: [ACTIVE, UNDER_REVIEW, SUSPENDED, TERMINATED]
+
+    DoraRiskStatus:
+      type: string
+      enum: [COMPLIANT, AT_RISK]
+
+    AssetCriticality:
+      type: string
+      enum: [LOW, MEDIUM, HIGH, CRITICAL]
+
+    AssetEnvironment:
+      type: string
+      enum: [PRODUCTION, STAGING, DEVELOPMENT, DR]
+
+    AssetType:
+      type: string
+      enum:
+        - API_SERVICE
+        - APPLICATION_SERVER
+        - API_GATEWAY
+        - WEB_SERVER
+        - DATABASE
+        - NETWORK_DEVICE
+        - BUILD_SERVER
+        - IDENTITY_PROVIDER
+        - ENDPOINT
+
+    LoginRequest:
+      type: object
+      required: [username, password]
+      properties:
+        username:
+          type: string
+          minLength: 3
+          maxLength: 50
+          pattern: '^[a-zA-Z0-9_.-]+$'
+        password:
+          type: string
+          format: password
+          minLength: 8
+          maxLength: 128
+      additionalProperties: false
+
+    UserSummaryDTO:
+      type: object
+      required: [id, username, email, fullName, role]
+      properties:
+        id:
+          type: integer
+        username:
+          type: string
+        email:
+          type: string
+          format: email
+        fullName:
+          type: string
+        role:
+          $ref: '#/components/schemas/UserRole'
+      additionalProperties: false
+
+    LoginResponse:
+      type: object
+      required: [accessToken, tokenType, expiresInSeconds, user]
+      properties:
+        accessToken:
+          type: string
+        tokenType:
+          type: string
+          enum: [Bearer]
+        expiresInSeconds:
+          type: integer
+          example: 3600
+        user:
+          $ref: '#/components/schemas/UserSummaryDTO'
+      additionalProperties: false
+
+    AssetCreateRequest:
+      type: object
+      required: [assetCode, name, assetType, criticality, environment, ownerDepartment, providerId]
+      properties:
+        assetCode:
+          type: string
+          minLength: 3
+          maxLength: 40
+          pattern: '^[A-Z0-9-]+$'
+        name:
+          type: string
+          minLength: 2
+          maxLength: 120
+        assetType:
+          $ref: '#/components/schemas/AssetType'
+        criticality:
+          $ref: '#/components/schemas/AssetCriticality'
+        environment:
+          $ref: '#/components/schemas/AssetEnvironment'
+        ownerDepartment:
+          type: string
+          minLength: 2
+          maxLength: 100
+        ipAddress:
+          type: [string, 'null']
+          maxLength: 45
+        operatingSystem:
+          type: [string, 'null']
+          maxLength: 80
+        providerId:
+          type: integer
+          minimum: 1
+      additionalProperties: false
+
+    AssetDTO:
+      type: object
+      required: [id, assetCode, name, assetType, criticality, environment, ownerDepartment, status, providerId, providerName]
+      properties:
+        id:
+          type: integer
+        assetCode:
+          type: string
+        name:
+          type: string
+        assetType:
+          $ref: '#/components/schemas/AssetType'
+        criticality:
+          $ref: '#/components/schemas/AssetCriticality'
+        environment:
+          $ref: '#/components/schemas/AssetEnvironment'
+        ownerDepartment:
+          type: string
+        ipAddress:
+          type: [string, 'null']
+        operatingSystem:
+          type: [string, 'null']
+        status:
+          type: string
+          enum: [ACTIVE, MAINTENANCE, DECOMMISSIONED]
+        providerId:
+          type: integer
+        providerName:
+          type: string
+        openVulnerabilitiesCount:
+          type: integer
+      additionalProperties: false
+
+    VulnerabilityCreateRequest:
+      type: object
+      required:
+        - internalCode
+        - title
+        - description
+        - cvssVersion
+        - cvssVector
+        - cvssScore
+        - severity
+        - affectedAssetIds
+      properties:
+        internalCode:
+          type: string
+          pattern: '^VFU-[0-9]{4,}$'
+          example: VFU-0021
+        cveId:
+          type: [string, 'null']
+          pattern: '^CVE-[0-9]{4}-[0-9]{4,}$'
+          example: CVE-2025-21001
+        title:
+          type: string
+          minLength: 5
+          maxLength: 200
+        description:
+          type: string
+          minLength: 10
+          maxLength: 5000
+        cvssVersion:
+          $ref: '#/components/schemas/CvssVersion'
+        cvssVector:
+          type: string
+          maxLength: 180
+          pattern: '^CVSS:(3\.1|4\.0)/[A-Z:/]+$'
+        cvssScore:
+          type: number
+          minimum: 0.0
+          maximum: 10.0
+        severity:
+          $ref: '#/components/schemas/CvssSeverity'
+        remediationPlan:
+          type: [string, 'null']
+          maxLength: 3000
+        assignedTo:
+          type: [integer, 'null']
+          minimum: 1
+        targetRemediationDate:
+          type: [string, 'null']
+          format: date
+        affectedAssetIds:
+          type: array
+          minItems: 1
+          maxItems: 50
+          uniqueItems: true
+          items:
+            type: integer
+            minimum: 1
+      additionalProperties: false
+
+    VulnerabilitySummaryDTO:
+      type: object
+      required:
+        - id
+        - internalCode
+        - title
+        - status
+        - cvssVersion
+        - cvssVector
+        - cvssScore
+        - severity
+        - discoveredAt
+        - affectedAssetsCount
+      properties:
+        id:
+          type: integer
+        internalCode:
+          type: string
+        cveId:
+          type: [string, 'null']
+        title:
+          type: string
+        status:
+          $ref: '#/components/schemas/VulnerabilityStatus'
+        cvssVersion:
+          $ref: '#/components/schemas/CvssVersion'
+        cvssVector:
+          type: string
+        cvssScore:
+          type: number
+        severity:
+          $ref: '#/components/schemas/CvssSeverity'
+        assignedTo:
+          type: [integer, 'null']
+        assignedUsername:
+          type: [string, 'null']
+        discoveredAt:
+          type: string
+          format: date
+        targetRemediationDate:
+          type: [string, 'null']
+          format: date
+        affectedAssetsCount:
+          type: integer
+        primaryProviderName:
+          type: [string, 'null']
+      additionalProperties: false
+
+    CvssAssessmentCreateRequest:
+      type: object
+      required: [cvssVersion, cvssVector, cvssScore, severity]
+      properties:
+        cvssVersion:
+          $ref: '#/components/schemas/CvssVersion'
+        cvssVector:
+          type: string
+          maxLength: 180
+          pattern: '^CVSS:(3\.1|4\.0)/[A-Z:/]+$'
+        cvssScore:
+          type: number
+          minimum: 0.0
+          maximum: 10.0
+        severity:
+          $ref: '#/components/schemas/CvssSeverity'
+      additionalProperties: false
+
+    CvssAssessmentDTO:
+      type: object
+      required: [id, vulnerabilityId, cvssVersion, cvssVector, cvssScore, severity, isCurrent, assessedAt]
+      properties:
+        id:
+          type: integer
+        vulnerabilityId:
+          type: integer
+        assessedBy:
+          type: [integer, 'null']
+        assessedByUsername:
+          type: [string, 'null']
+        cvssVersion:
+          $ref: '#/components/schemas/CvssVersion'
+        cvssVector:
+          type: string
+        cvssScore:
+          type: number
+        severity:
+          $ref: '#/components/schemas/CvssSeverity'
+        isCurrent:
+          type: boolean
+        assessedAt:
+          type: string
+          format: date-time
+      additionalProperties: false
+
+    RemediationCommentDTO:
+      type: object
+      required: [id, vulnerabilityId, userId, username, commentText, createdAt]
+      properties:
+        id:
+          type: integer
+        vulnerabilityId:
+          type: integer
+        userId:
+          type: integer
+        username:
+          type: string
+        commentText:
+          type: string
+        evidenceUrl:
+          type: [string, 'null']
+        createdAt:
+          type: string
+          format: date-time
+      additionalProperties: false
+
+    AuditLogDTO:
+      type: object
+      required: [id, vulnerabilityId, userId, username, actionType, justification, createdAt]
+      properties:
+        id:
+          type: integer
+        vulnerabilityId:
+          type: integer
+        userId:
+          type: integer
+        username:
+          type: string
+        actionType:
+          type: string
+        previousStatus:
+          type: [string, 'null']
+        newStatus:
+          type: [string, 'null']
+        justification:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+      additionalProperties: false
+
+    VulnerabilityDetailDTO:
+      allOf:
+        - $ref: '#/components/schemas/VulnerabilitySummaryDTO'
+        - type: object
+          required: [description, affectedAssets, assessmentsHistory, comments, auditTrail]
+          properties:
+            description:
+              type: string
+            remediationPlan:
+              type: [string, 'null']
+            resolvedAt:
+              type: [string, 'null']
+              format: date-time
+            affectedAssets:
+              type: array
+              items:
+                $ref: '#/components/schemas/AssetDTO'
+            assessmentsHistory:
+              type: array
+              items:
+                $ref: '#/components/schemas/CvssAssessmentDTO'
+            comments:
+              type: array
+              items:
+                $ref: '#/components/schemas/RemediationCommentDTO'
+            auditTrail:
+              type: array
+              items:
+                $ref: '#/components/schemas/AuditLogDTO'
+
+    StatusTransitionRequest:
+      type: object
+      required: [newStatus, justification]
+      properties:
+        newStatus:
+          $ref: '#/components/schemas/VulnerabilityStatus'
+        justification:
+          type: string
+          minLength: 10
+          maxLength: 2000
+        commentText:
+          type: [string, 'null']
+          maxLength: 2000
+        evidenceUrl:
+          type: [string, 'null']
+          maxLength: 255
+      additionalProperties: false
+
+    BatchImportRequest:
+      type: object
+      required: [sourceFileName, items]
+      properties:
+        sourceFileName:
+          type: string
+          maxLength: 120
+        items:
+          type: array
+          minItems: 1
+          maxItems: 500
+          items:
+            $ref: '#/components/schemas/VulnerabilityCreateRequest'
+      additionalProperties: false
+
+    BatchImportResultResponse:
+      type: object
+      required: [jobId, status, totalSubmitted, insertedCount, rolledBack, workerThreadsUsed, executionTimeMs, errors]
+      properties:
+        jobId:
+          type: string
+        status:
+          type: string
+          enum: [COMMITTED, ROLLED_BACK_ON_ERROR]
+        totalSubmitted:
+          type: integer
+        insertedCount:
+          type: integer
+        rolledBack:
+          type: boolean
+        workerThreadsUsed:
+          type: integer
+        executionTimeMs:
+          type: integer
+        errors:
+          type: array
+          items:
+            type: object
+            required: [index, internalCode, field, message]
+            properties:
+              index:
+                type: integer
+              internalCode:
+                type: string
+              field:
+                type: string
+              message:
+                type: string
+            additionalProperties: false
+      additionalProperties: false
+
+    IctProviderUpsertRequest:
+      type: object
+      required:
+        - providerCode
+        - name
+        - providedService
+        - criticality
+        - contractReference
+        - contractStatus
+        - reviewDate
+        - contactEmail
+        - countryCode
+        - slaAvailabilityPct
+      properties:
+        providerCode:
+          type: string
+          pattern: '^PROV-[0-9]{3,}$'
+        name:
+          type: string
+          minLength: 2
+          maxLength: 120
+        providedService:
+          type: string
+          minLength: 5
+          maxLength: 150
+        criticality:
+          $ref: '#/components/schemas/ProviderCriticality'
+        contractReference:
+          type: string
+          maxLength: 100
+        contractStatus:
+          $ref: '#/components/schemas/ContractStatus'
+        reviewDate:
+          type: string
+          format: date
+        contactEmail:
+          type: string
+          format: email
+        countryCode:
+          type: string
+          pattern: '^[A-Z]{2}$'
+        slaAvailabilityPct:
+          type: number
+          minimum: 0.0
+          maximum: 100.0
+      additionalProperties: false
+
+    IctProviderDTO:
+      allOf:
+        - $ref: '#/components/schemas/IctProviderUpsertRequest'
+        - type: object
+          required: [id, managedAssetsCount, activeCriticalHighVulnsCount, doraRiskStatus]
+          properties:
+            id:
+              type: integer
+            managedAssetsCount:
+              type: integer
+            activeCriticalHighVulnsCount:
+              type: integer
+            doraRiskStatus:
+              $ref: '#/components/schemas/DoraRiskStatus'
+
+    ProviderDoraReportDTO:
+      type: object
+      required:
+        - provider
+        - generatedAt
+        - doraRiskStatus
+        - riskJustification
+        - managedAssets
+        - pendingVulnerabilities
+      properties:
+        provider:
+          $ref: '#/components/schemas/IctProviderDTO'
+        generatedAt:
+          type: string
+          format: date-time
+        doraRiskStatus:
+          $ref: '#/components/schemas/DoraRiskStatus'
+        riskJustification:
+          type: string
+        managedAssets:
+          type: array
+          items:
+            $ref: '#/components/schemas/AssetDTO'
+        pendingVulnerabilities:
+          type: array
+          items:
+            $ref: '#/components/schemas/VulnerabilitySummaryDTO'
+      additionalProperties: false
+
+    DashboardSummaryResponse:
+      type: object
+      required:
+        - totalVulnerabilities
+        - openAndPendingCount
+        - criticalOpenCount
+        - providersAtRiskCount
+        - bySeverity
+        - byStatus
+        - providersAtRisk
+      properties:
+        totalVulnerabilities:
+          type: integer
+        openAndPendingCount:
+          type: integer
+        criticalOpenCount:
+          type: integer
+        providersAtRiskCount:
+          type: integer
+        bySeverity:
+          type: object
+          additionalProperties:
+            type: integer
+        byStatus:
+          type: object
+          additionalProperties:
+            type: integer
+        providersAtRisk:
+          type: array
+          items:
+            $ref: '#/components/schemas/IctProviderDTO'
+      additionalProperties: false
+
+    PaginatedVulnerabilityResponse:
+      type: object
+      required: [content, page, size, totalElements, totalPages, last]
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/VulnerabilitySummaryDTO'
+        page:
+          type: integer
+        size:
+          type: integer
+        totalElements:
+          type: integer
+        totalPages:
+          type: integer
+        last:
+          type: boolean
+      additionalProperties: false
+
+    PaginatedAssetResponse:
+      type: object
+      required: [content, page, size, totalElements, totalPages, last]
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/AssetDTO'
+        page:
+          type: integer
+        size:
+          type: integer
+        totalElements:
+          type: integer
+        totalPages:
+          type: integer
+        last:
+          type: boolean
+      additionalProperties: false
+
+    ApiErrorResponse:
+      type: object
+      required: [timestamp, status, error, code, message, path]
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+        status:
+          type: integer
+        error:
+          type: string
+        code:
+          type: string
+          enum:
+            - CVSS_COHERENCE_VIOLATION
+            - INVALID_STATE_TRANSITION
+            - VALIDATION_ERROR
+            - UNAUTHORIZED
+            - FORBIDDEN_ROLE
+            - RESOURCE_NOT_FOUND
+            - DUPLICATE_RESOURCE
+        message:
+          type: string
+        path:
+          type: string
+        details:
+          type: array
+          items:
+            type: object
+            required: [field, issue]
+            properties:
+              field:
+                type: string
+              issue:
+                type: string
+            additionalProperties: false
+      additionalProperties: false
+
+  responses:
+    BadRequestError:
+      description: Validation or CVSS coherence error (`400 Bad Request`)
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiErrorResponse'
+    UnauthorizedError:
+      description: Missing, invalid, or expired JWT (`401 Unauthorized`)
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiErrorResponse'
+    ForbiddenError:
+      description: Insufficient RBAC role permissions (`403 Forbidden`)
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiErrorResponse'
+    NotFoundError:
+      description: Requested entity not found (`404 Not Found`)
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiErrorResponse'
+    ConflictError:
+      description: Duplicate identifier or illegal lifecycle state transition (`409 Conflict`)
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiErrorResponse'
