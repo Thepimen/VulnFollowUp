@@ -1,52 +1,34 @@
 # Backend Service - VulnFollowUp API
 
-RESTful API backend for **VulnFollowUp**, responsible for business logic, persistence, and external orchestration under the EU **Digital Operational Resilience Act (DORA)** regulatory framework.
+Backend desarrollado en **Java 21** con **Spring Boot 3** y **Spring Data JPA / Hibernate** para el proyecto intermodular **VulnFollowUp** (2.º DAM).
 
 ---
 
-## Technical Scope & DAM Modules
+## Qué se ha implementado en el Backend (JPA, Seguridad BCrypt, CRUD y Rollback)
 
-- **Acceso a Datos (AD)**:
-  - Relational mapping, DAO/Repository patterns, transactional integrity.
-  - CRUD operations on IT Assets, Vulnerabilities, Assessments, and ICT Third-Party Providers.
-  - Complex queries (N:M relationship: Vulnerabilities $\leftrightarrow$ Assets).
-- **Programación de Servicios y Procesos (PSP)**:
-  - **Concurrency & Critical Sections**: Thread-safe access to shared in-memory caches and counters with automated race-condition tests.
-  - **Asynchronous Workloads (`ExecutorService`)**: Background ingestion of large vulnerability datasets (CVE JSON feeds) and asynchronous report compilation.
-  - **Process Orchestration (`ProcessBuilder`)**: Execution of isolated external system utilities to generate sanitized export reports (CSV/HTML/PDF).
-- **Sistemas de Gestión Empresarial (SGE)**:
-  - DORA Chapter V compliance: Monitoring and risk scoring of Critical Third-Party ICT Providers tied to business-critical IT assets.
+1. **Entidades JPA mapeadas al esquema SQL existente (`com.vulnfollowup.model`)**:
+   - `User`: usuarios de la plataforma (tabla `"User"`) con su contraseña cifrada con hash + sal (`password_hash`) y rol RBAC (`UserRole`: `ADMIN`, `ANALYST`, `VIEWER`).
+   - `TicProvider`: representa a los proveedores tecnológicos externos bajo la normativa europea DORA (módulo SGE), mapeado a la tabla `"IT_Provider"` y conectado en relación `1:N` con los activos.
+   - `Asset`: representa cada activo tecnológico de la empresa (tabla `"Asset"`), conectado con su proveedor TIC (`@ManyToOne`) y con las vulnerabilidades que le afectan (`@ManyToMany`).
+   - `Vulnerability`: entidad principal del proyecto (tabla `"Vulnerability"`). Es propietaria de la relación `N:M` con los activos mediante la tabla intermedia `"Asset_Vulnerability"` (`@JoinTable`) y se relaciona `1:1` con su evaluación CVSS.
+   - `CvssAssessment`: almacena el cálculo CVSS v3.1 o v4.0 (vector, puntuación `BigDecimal` de `0.0` a `10.0`, severidad y fecha) en la tabla `"CVSS_Assessment"`.
+   - `AuditLog`: registra de forma inmutable cada cambio de estado en el ciclo de vida de una vulnerabilidad en la tabla `"Remediation_Audit"` (usuario, estado anterior, estado nuevo, justificación y fecha).
 
----
+2. **Login con BCrypt y Control de Roles (`com.vulnfollowup.config` y `service.AuthService`)**:
+   - Configuración de `BCryptPasswordEncoder(12)` en `SecurityCryptoConfig` (sal aleatoria integrada y coste 12).
+   - `AuthService`: registro seguro de usuarios sin guardar nunca contraseñas en texto plano, verificación de credenciales con `passwordEncoder.matches(...)` y validación de permisos según el rol (`ADMIN`, `ANALYST`, `VIEWER`).
 
-## Architecture Layers
+3. **Servicio CRUD, Validación CVSS y Ciclo de Vida (`com.vulnfollowup.service.VulnerabilityService`)**:
+   - **Motor de coherencia CVSS (v3.1 y v4.0)**: comprueba que la versión (`3.1` o `4.0`) coincida con el prefijo del vector (`CVSS:3.1/` o `CVSS:4.0/`), que la nota esté entre `0.0` y `10.0` y que coincida con la escala oficial de severidad (rechazando casos incoherentes como nota `9.8` con severidad `BAJA`).
+   - **Máquina de estados y Auditoría**: valida las transiciones permitidas (`ABIERTA` $\rightarrow$ `PENDIENTE_DE_REMEDIACION` $\rightarrow$ `RESUELTA` $\rightarrow$ `CERRADA`, más reapertura `RESUELTA` $\rightarrow$ `ABIERTA`) e inserta automáticamente el registro en `AuditLog` dentro de la misma transacción.
 
-```
-backend/
-├── src/
-│   ├── main/
-│   │   ├── java/com/vulnfollowup/
-│   │   │   ├── config/          # Security, concurrency thread pools, database configuration
-│   │   │   ├── controller/      # REST Endpoints (Auth, Assets, Vulnerabilities, Providers)
-│   │   │   ├── service/         # Business logic, CVSS calculators, concurrency handlers
-│   │   │   ├── repository/      # Data access layer (DAO / JPA Repositories)
-│   │   │   ├── model/           # Entities (Vulnerability, Asset, Provider, User)
-│   │   │   ├── dto/             # Data Transfer Objects & validation schemas
-│   │   │   └── process/         # ProcessBuilder runners for report generation
-│   │   └── resources/
-│   │       ├── application.properties
-│   │       └── scripts/         # External scripts invoked via ProcessBuilder
-│   └── test/
-│       └── java/com/vulnfollowup/
-│           ├── concurrency/     # Race condition & multi-thread stress tests
-│           └── service/         # Unit and integration tests
-└── pom.xml (or build.gradle)
-```
+4. **Importación Masiva de JSON con Rollback Transaccional (`importVulnerabilitiesFromJsonFile`)**:
+   - Lectura de lotes JSON con Jackson (`ObjectMapper` + `VulnerabilityImportDto`) anotada con `@Transactional(rollbackFor = Exception.class)`.
+   - Si cualquier registro del lote falla la validación (por ejemplo, el 4.º registro corrupto de `data/vulnerabilities_invalid_rollback_test.json`), Spring e Hibernate ejecutan **`ROLLBACK` automático** de los registros anteriores para que no queden datos parciales en la base de datos.
 
----
+5. **Control de concurrencia optimista (PSP) y Rendimiento (`FetchType.LAZY`)**:
+   - Campo `@Version private Long version;` en `Vulnerability` para evitar pérdidas de actualización (*lost updates*) si dos analistas editan la misma vulnerabilidad a la vez.
+   - Todas las relaciones (`@ManyToOne`, `@OneToMany`, `@ManyToMany` y `@OneToOne`) están en `LAZY` con `spring.jpa.open-in-view=false` para evitar el problema `N+1`.
 
-## Authentication & Authorization
-
-- **RBAC Roles**: `ADMIN`, `ANALYST`, `VIEWER`.
-- **Security Standard**: Passwords hashed with cryptographic salt (BCrypt / Argon2).
-- **Session Management**: JWT (JSON Web Tokens) or secure bearer tokens.
+6. **Pruebas de Integración (`BackendPersistenceAndRollbackTest`)**:
+   - Verifica automáticamente el login con BCrypt, el flujo completo de estados con auditoría del caso *HostingSur S.L. (`VFU-0012`)* y el rollback transaccional del JSON corrupto.
