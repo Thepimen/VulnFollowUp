@@ -1,6 +1,6 @@
 /**
  * VulnFollowUp — Strict TypeScript DTO Contracts
- * Synchronized 1:1 with docs/api/openapi.yaml and database/schema/01_schema.sql
+ * Synchronized 1:1 with backend ApiDtos.java, docs/api/openapi.yaml and database/schema/01_schema.sql
  */
 
 export type UserRole = 'ADMIN' | 'ANALYST' | 'VIEWER';
@@ -36,6 +36,11 @@ export type AssetType =
   | 'IDENTITY_PROVIDER'
   | 'ENDPOINT';
 
+export interface FieldIssueDTO {
+  field: string;
+  issue: string;
+}
+
 export interface UserSummaryDTO {
   id: number;
   username: string;
@@ -54,22 +59,52 @@ export interface LoginResponse {
   tokenType: 'Bearer';
   expiresInSeconds: number;
   user: UserSummaryDTO;
+  userId?: number;
+  username?: string;
+  role?: UserRole;
+  authenticated?: boolean;
+}
+
+export interface HealthResponse {
+  status: string;
+  service: string;
 }
 
 export interface AssetDTO {
   id: number;
   assetCode: string;
   name: string;
+  assetType: AssetType | string;
+  criticality: AssetCriticality;
+  environment: AssetEnvironment | string;
+  ownerDepartment: string;
+  ipAddress: string | null;
+  operatingSystem: string | null;
+  status: 'ACTIVE' | 'MAINTENANCE' | 'DECOMMISSIONED' | string;
+  providerId: number;
+  providerName: string;
+  openVulnerabilitiesCount: number;
+}
+
+export interface AssetCreateRequest {
+  assetCode: string;
+  name: string;
   assetType: AssetType;
   criticality: AssetCriticality;
   environment: AssetEnvironment;
   ownerDepartment: string;
-  ipAddress: string | null;
-  operatingSystem: string | null;
-  status: 'ACTIVE' | 'MAINTENANCE' | 'DECOMMISSIONED';
+  ipAddress?: string | null;
+  operatingSystem?: string | null;
   providerId: number;
-  providerName: string;
-  openVulnerabilitiesCount: number;
+}
+
+export interface AssetFilterParams {
+  providerId?: number;
+  criticality?: AssetCriticality | '';
+  environment?: AssetEnvironment | '';
+  search?: string;
+  page?: number;
+  size?: number;
 }
 
 export interface VulnerabilitySummaryDTO {
@@ -135,8 +170,66 @@ export interface VulnerabilityDetailDTO extends VulnerabilitySummaryDTO {
   auditTrail: AuditLogDTO[];
 }
 
+export interface VulnerabilityCreateRequest {
+  internalCode: string;
+  cveId?: string | null;
+  title: string;
+  description: string;
+  cvssVersion: CvssVersion;
+  cvssVector: string;
+  cvssScore: number;
+  severity: CvssSeverity;
+  remediationPlan?: string | null;
+  assignedTo?: number | null;
+  discoveredAt?: string | null;
+  targetRemediationDate?: string | null;
+  affectedAssetIds: number[];
+}
+
+export interface StatusTransitionRequest {
+  newStatus: VulnerabilityStatus;
+  justification: string;
+  commentText?: string | null;
+  evidenceUrl?: string | null;
+}
+
+export interface CvssAssessmentCreateRequest {
+  cvssVersion: CvssVersion;
+  cvssVector: string;
+  cvssScore: number;
+  severity: CvssSeverity;
+  justification?: string | null;
+}
+
+export interface BatchImportResultDTO {
+  jobId: string;
+  status: string;
+  totalSubmitted: number;
+  insertedCount: number;
+  rolledBack: boolean;
+  workerThreadsUsed: number;
+  executionTimeMs: number;
+  errors: FieldIssueDTO[];
+}
+
 export interface IctProviderDTO {
   id: number;
+  providerCode: string;
+  name: string;
+  providedService: string;
+  criticality: ProviderCriticality;
+  contractReference: string;
+  contractStatus: ContractStatus | string;
+  reviewDate: string;
+  contactEmail: string;
+  countryCode: string;
+  slaAvailabilityPct: number;
+  managedAssetsCount: number;
+  activeCriticalHighVulnsCount: number;
+  doraRiskStatus: DoraRiskStatus;
+}
+
+export interface IctProviderUpsertRequest {
   providerCode: string;
   name: string;
   providedService: string;
@@ -147,9 +240,12 @@ export interface IctProviderDTO {
   contactEmail: string;
   countryCode: string;
   slaAvailabilityPct: number;
-  managedAssetsCount: number;
-  activeCriticalHighVulnsCount: number;
-  doraRiskStatus: DoraRiskStatus;
+}
+
+export interface ProviderFilterParams {
+  criticality?: ProviderCriticality | '';
+  contractStatus?: ContractStatus | '';
+  atRiskOnly?: boolean;
 }
 
 export interface ProviderDoraReportDTO {
@@ -194,6 +290,15 @@ export interface VulnerabilityFilterParams {
   sort?: string;
 }
 
+export type ReportFormat = 'CSV' | 'HTML';
+
+export interface ReportExportParams {
+  format: ReportFormat;
+  severity?: CvssSeverity | '';
+  status?: VulnerabilityStatus | '';
+  providerId?: number;
+}
+
 export interface ApiErrorResponse {
   timestamp: string;
   status: number;
@@ -205,8 +310,9 @@ export interface ApiErrorResponse {
     | 'UNAUTHORIZED'
     | 'FORBIDDEN_ROLE'
     | 'RESOURCE_NOT_FOUND'
-    | 'DUPLICATE_RESOURCE';
+    | 'DUPLICATE_RESOURCE'
+    | string;
   message: string;
   path: string;
-  details?: Array<{ field: string; issue: string }>;
+  details?: FieldIssueDTO[];
 }
