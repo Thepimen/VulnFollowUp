@@ -2,7 +2,8 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![DORA Compliant](https://img.shields.io/badge/Compliance-EU_DORA_2022%2F2554-blue.svg)](https://eur-lex.europa.eu/eli/reg/2022/2554/oj)
-[![Java: 17+](https://img.shields.io/badge/Java-17%2B-orange.svg)](https://www.oracle.com/java/)
+[![Java: 21](https://img.shields.io/badge/Java-21_LTS-orange.svg)](https://www.oracle.com/java/)
+[![React: 18 + TS](https://img.shields.io/badge/Frontend-React_18_%2B_TypeScript-00D3FB.svg)](https://react.dev/)
 [![WCAG: 2.1_AA](https://img.shields.io/badge/Accessibility-WCAG_2.1_AA-green.svg)](https://www.w3.org/WAI/standards-guidelines/wcag/)
 
 > **Enterprise Vulnerability Management & Operational Resilience Platform aligned with the EU Digital Operational Resilience Act (DORA - Regulation EU 2022/2554).**
@@ -96,24 +97,44 @@ stateDiagram-v2
 
 | Method | Endpoint | Description |
 |---|---|---|
-| `POST` | `/api/auth/login` | Authenticate user credentials and return JWT bearer token. |
-| `GET` | `/api/assets` | Retrieve registered IT assets and their DORA criticality tiers. |
-| `GET` | `/api/vulnerabilities` | Paginated and filtered query of vulnerabilities (Sustainable/Green). |
-| `GET` | `/api/vulnerabilities/{id}` | Detailed single vulnerability view with full CVSS vector and assets. |
-| `POST` | `/api/vulnerabilities` | Register a new vulnerability with validated CVSS scoring. |
-| `PATCH`| `/api/vulnerabilities/{id}/status` | Execute state transition in the formal vulnerability lifecycle. |
-| `POST` | `/api/vulnerabilities/{id}/assessment` | Attach technical triage, compensating controls, or remediation notes. |
-| `GET` | `/api/dashboard/summary` | Aggregated executive KPIs (MTTR, open criticals, risk score). |
-| `GET` | `/api/providers` | List DORA ICT third-party providers. |
-| `POST` | `/api/providers` | Onboard an ICT service vendor under DORA Chapter V. |
-| `GET` | `/api/providers/{id}/report` | Asynchronously export provider compliance and dependency report. |
+| `GET` | `/api/health` | Public backend liveness probe (`UP`). |
+| `POST` | `/api/auth/login` | Authenticate BCrypt-salted credentials and issue RFC 7519 HS256 JWT bearer token. |
+| `GET` | `/api/assets` | Paginated IT assets with DORA criticality tiers and `ict_providers` 1:N linkage. |
+| `POST` | `/api/assets` | Register a new IT asset (`ADMIN`, `ANALYST`). |
+| `GET` | `/api/vulnerabilities` | Paginated and filtered query of vulnerabilities (Green Software). |
+| `GET` | `/api/vulnerabilities/{id}` | Detailed vulnerability with full CVSS vector, N:M assets and immutable `audit_logs`. |
+| `POST` | `/api/vulnerabilities` | Register a new vulnerability with strict CVSS Base v3.1/v4.0 validation. |
+| `POST` | `/api/vulnerabilities/import` | Atomic transactional JSON batch ingestion (`@Transactional` rollback on invalid CVSS). |
+| `PATCH` | `/api/vulnerabilities/{id}/status` | Execute audited state transition (`CERRADA` restricted to `ADMIN`). |
+| `POST` | `/api/vulnerabilities/{id}/assessment` | Append a validated CVSS v3.1/v4.0 re-assessment. |
+| `DELETE` | `/api/vulnerabilities/{id}` | Remove a vulnerability record (`ADMIN` only). |
+| `GET` | `/api/dashboard/summary` | Aggregated executive KPIs (open/critical counts, severity breakdown, `AT_RISK` vendors). |
+| `GET` | `/api/providers` | List DORA Chapter V ICT third-party providers with automated risk classification. |
+| `POST` / `PUT` | `/api/providers` | Onboard or update an ICT vendor contract (`ADMIN` only). |
+| `GET` | `/api/providers/{id}/report` | Retrieve provider DORA compliance dossier, managed assets and pending breaches. |
+| `GET` | `/api/reports/export` | Export executive `CSV` / `HTML` report safely via Java `ProcessBuilder` (`ADMIN`, `ANALYST`). |
 
 ---
 
-## 6. Quick Setup & Developer Instructions
+## 6. Desktop / Web SPA Capabilities (`desktop-client/` — Phase 3A)
+
+Built with **React 18 + TypeScript + Vite + GSAP** following a unified **Midnight Obsidian + Sapphire (`#0042AC`) / Ocean (`#00D3FB`) / Neon Jade (`#83FD80`)** design system with verified **WCAG 2.1 Level AA** dark and light themes:
+
+- **Brutalist 3D Presentation Landing (`/`)**: Interactive `CyberMesh3D` canvas, draggable `CvssPrism3D` (`v3.1` / `v4.0`), `IsometricVaultStage` DORA supply-chain showcase and GSAP `ScrollTrigger` choreography (`prefers-reduced-motion` compliant).
+- **Executive DORA Dashboard (`/dashboard`)**:
+  - **DORA Posture Hero (`0–100`)**: Dynamic semicircular resilience gauge with live *What-If* mitigation impact and integrated 2×2 telemetry matrix.
+  - **Multi-Provider Blast-Radius Switcher**: Interactive tabs for every `AT_RISK` vendor (`HostingSur S.L.`, `CloudScale`, `CyberShield`) tracing `Provider → Exposed Asset → Critical Vulnerability` with animated SVG flow connectors.
+  - **Tri-Mode Analytics Card**: Switch seamlessly between **CVSS Donut**, **ICT Vendor Exposure Bars**, and **Fintech Remediation Trend Curve**.
+  - **SLA Countdown & 1-Click Triage**: Priority CVEs table with overdue/upcoming SLA badges, direct `Avanzar →` Slide-Over transition trigger, live `audit_logs` feed, and 1-click `CSV` / `HTML` export.
+- **Slide-Over Quick Inspector & Human CVSS Translator**: Inspect any vulnerability in place (right drawer on desktop, native bottom sheet on mobile) with metric-by-metric Spanish CVSS v3.1/v4.0 breakdown, N:M assets, status transitions, and `audit_logs`.
+- **Keyboard-First & Resilient Offline Demo Mode**: Global `Ctrl + K` Command Palette, native mobile bottom dock with central `+` FAB, and an interactive in-memory Demo Store (including the official `VFU-0012` HostingSur case and `VFU-0091`–`VFU-0094` ACID rollback dataset) when Spring Boot is offline.
+
+---
+
+## 7. Quick Setup & Developer Instructions
 
 ### Prerequisites
-- **Java SE Development Kit (JDK)**: Version 17 or higher
+- **Java SE Development Kit (JDK)**: Version 21 LTS (17+ compatible)
 - **Node.js**: Version 18 LTS or higher
 - **Android Studio / SDK**: API Level 33+ (for Android client)
 - **Git**: 2.30+
@@ -147,7 +168,7 @@ cd android-app
 
 ---
 
-## 7. Educational & Vocational Context
+## 8. Educational & Vocational Context
 
 This project represents the **Proyecto Intermodular** for the 2nd year of the Higher Vocational Training Degree in Multi-platform Application Development (**2.º DAM**):
 - **PSP**: Thread safety, concurrency tests, `ExecutorService`, `ProcessBuilder`.
@@ -159,7 +180,7 @@ This project represents the **Proyecto Intermodular** for the 2nd year of the Hi
 
 ---
 
-## 8. Authors
+## 9. Authors
 
 - **Development Team**: 2 Multi-platform Application Development Engineers (2.º DAM).
 - **Institution**: Vocational Education & Training Center.
