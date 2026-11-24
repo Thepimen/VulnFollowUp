@@ -1,0 +1,1340 @@
+/* ==========================================================================
+   VULNFOLLOWUP — AWWWARDS INDUSTRIAL BRUTALIST 3D LANDING SYSTEM
+   Palette (60-30-10 Color Theory from Reference Plates + WCAG 2.1 AA/AAA):
+     60% Obsidian Substrate : #090C14 / #101524
+     30% Structural Monolith: #F4F7FF / #93A2BE / Sapphire Blue #0042AC
+     10% Kinetic Energy     : Ocean Blue #00D3FB / Neon Jade #83FD80
+   ========================================================================== */
+
+.lp-root {
+  --lp-bg: #090c14;
+  --lp-surface: #101524;
+  --lp-surface-2: #151c30;
+  --lp-grid-line: #1d2a45;
+  --lp-ink: #f4f7ff;
+  --lp-ink-dim: #93a2be;
+  --lp-sapphire: #0042ac;
+  --lp-ocean: #00d3fb;
+  --lp-jade: #83fd80;
+  --lp-jade-ink: #070b12;
+  --lp-fault: #ff4d79;
+  --lp-font-display: 'Syne', 'Space Grotesk', sans-serif;
+  --lp-font-body: 'Space Grotesk', 'IBM Plex Sans', sans-serif;
+  --lp-font-mono: 'JetBrains Mono', monospace;
+  --lp-spring: cubic-bezier(0.22, 1, 0.36, 1);
+
+  position: relative;
+  min-height: 100dvh;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: clip;
+  background-color: var(--lp-bg);
+  color: var(--lp-ink);
+  font-family: var(--lp-font-body);
+}
+
+/* Subtle fixed analog grain + CRT blueprint texture (GPU-safe) */
+.lp-grain-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  pointer-events: none;
+  opacity: 0.045;
+  background-image:
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 3px,
+      rgba(0, 211, 251, 0.22) 3px,
+      rgba(0, 211, 251, 0.22) 4px
+    );
+}
+
+/* ==========================================================================
+   Brutalist Architectural Top Bar (Sharp 0px corners, 1px Blueprint Line)
+   ========================================================================== */
+.lp-nav {
+  position: sticky;
+  top: 0;
+  z-index: 60;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: stretch;
+  background-color: rgba(9, 12, 20, 0.94);
+  border-bottom: 1px solid var(--lp-grid-line);
+  backdrop-filter: blur(10px);
+}
+
+.lp-nav-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 24px;
+  border-right: 1px solid var(--lp-grid-line);
+  color: var(--lp-ink);
+  text-decoration: none;
+  font-family: var(--lp-font-display);
+  font-weight: 800;
+  font-size: 1.05rem;
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+}
+
+.lp-brand-mark {
+  display: inline-grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  background-color: var(--lp-sapphire);
+  border: 1px solid var(--lp-ocean);
+  color: var(--lp-jade);
+}
+
+.lp-nav-links {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 0 16px;
+}
+
+.lp-nav-link {
+  padding: 10px 16px;
+  font-family: var(--lp-font-mono);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--lp-ink-dim);
+  text-decoration: none;
+  transition: color 180ms var(--lp-spring), background-color 180ms var(--lp-spring);
+}
+
+.lp-nav-link:hover,
+.lp-nav-link:focus-visible {
+  color: var(--lp-ocean);
+  background-color: rgba(0, 66, 172, 0.22);
+}
+
+.lp-nav-actions {
+  display: flex;
+  align-items: stretch;
+  border-left: 1px solid var(--lp-grid-line);
+}
+
+.lp-nav-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 24px;
+  background-color: var(--lp-jade);
+  color: var(--lp-jade-ink);
+  font-family: var(--lp-font-mono);
+  font-size: 0.8rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  text-decoration: none;
+  transition: background-color 180ms var(--lp-spring), transform 140ms var(--lp-spring);
+}
+
+.lp-nav-cta:hover {
+  background-color: var(--lp-ocean);
+  color: var(--lp-jade-ink);
+}
+
+.lp-nav-cta:active {
+  transform: scale(0.98);
+}
+
+/* ==========================================================================
+   CHAPTER 1: ATTENTION — Monumental Brutalist Hero + Live 3D CyberMesh
+   ========================================================================== */
+.lp-hero {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr);
+  min-height: calc(100dvh - 58px);
+  border-bottom: 1px solid var(--lp-grid-line);
+}
+
+.lp-hero-left {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: clamp(32px, 4.5vw, 64px) clamp(24px, 4vw, 56px);
+  border-right: 1px solid var(--lp-grid-line);
+  background-image:
+    linear-gradient(to right, rgba(0, 211, 251, 0.04) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(0, 211, 251, 0.04) 1px, transparent 1px);
+  background-size: 48px 48px;
+}
+
+.lp-hero-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  font-family: var(--lp-font-mono);
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--lp-ocean);
+}
+
+.lp-status-live {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 10px;
+  background-color: rgba(131, 253, 128, 0.12);
+  border: 1px solid var(--lp-jade);
+  color: var(--lp-jade);
+}
+
+.lp-status-dot {
+  width: 7px;
+  height: 7px;
+  background-color: var(--lp-jade);
+}
+
+.lp-hero-copy-block {
+  margin: 32px 0;
+}
+
+.lp-h1 {
+  font-family: var(--lp-font-display);
+  font-weight: 800;
+  font-size: clamp(2rem, 3.85vw, 3.9rem);
+  line-height: 0.96;
+  letter-spacing: -0.03em;
+  text-transform: uppercase;
+  color: var(--lp-ink);
+  max-width: 100%;
+}
+
+.lp-h1-accent {
+  display: block;
+  color: var(--lp-ocean);
+}
+
+.lp-hero-lead {
+  margin-top: 26px;
+  max-width: 58ch;
+  font-size: clamp(1.05rem, 1.35vw, 1.24rem);
+  line-height: 1.55;
+  color: var(--lp-ink-dim);
+}
+
+.lp-hero-lead strong {
+  color: var(--lp-ink);
+  font-weight: 700;
+}
+
+.lp-hero-actions {
+  margin-top: 32px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+}
+
+.lp-btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 26px;
+  background-color: var(--lp-jade);
+  color: var(--lp-jade-ink);
+  border: 2px solid var(--lp-jade);
+  font-family: var(--lp-font-mono);
+  font-size: 0.86rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  text-decoration: none;
+  cursor: pointer;
+  transition: transform 180ms var(--lp-spring), background-color 180ms var(--lp-spring), border-color 180ms var(--lp-spring);
+}
+
+.lp-btn-primary:hover {
+  background-color: var(--lp-ocean);
+  border-color: var(--lp-ocean);
+  transform: translate(-3px, -3px);
+  box-shadow: 5px 5px 0 var(--lp-sapphire);
+}
+
+.lp-btn-primary:active {
+  transform: translate(0, 0);
+  box-shadow: none;
+}
+
+.lp-btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 16px 24px;
+  background-color: var(--lp-sapphire);
+  color: var(--lp-ink);
+  border: 2px solid var(--lp-ocean);
+  font-family: var(--lp-font-mono);
+  font-size: 0.86rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  text-decoration: none;
+  cursor: pointer;
+  transition: transform 180ms var(--lp-spring), background-color 180ms var(--lp-spring);
+}
+
+.lp-btn-secondary:hover {
+  background-color: #0b56cf;
+  transform: translate(-3px, -3px);
+  box-shadow: 5px 5px 0 var(--lp-jade);
+}
+
+.lp-hero-foot-strip {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1px;
+  background-color: var(--lp-grid-line);
+  border: 1px solid var(--lp-grid-line);
+}
+
+.lp-hero-stat {
+  background-color: var(--lp-surface);
+  padding: 14px 16px;
+}
+
+.lp-hero-stat strong {
+  display: block;
+  font-family: var(--lp-font-display);
+  font-size: 1.6rem;
+  line-height: 1.1;
+  color: var(--lp-ink);
+}
+
+.lp-hero-stat span {
+  display: block;
+  margin-top: 4px;
+  font-family: var(--lp-font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--lp-ink-dim);
+}
+
+/* Right Column: Interactive 3D Geodesic Canvas */
+.lp-hero-right {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  background-color: #070a12;
+  min-height: 520px;
+}
+
+.mesh3d-frame {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  min-height: 520px;
+}
+
+.mesh3d-hud-top,
+.mesh3d-hud-bottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 18px;
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  color: var(--lp-ocean);
+  border-bottom: 1px solid var(--lp-grid-line);
+  background-color: var(--lp-surface);
+}
+
+.mesh3d-hud-bottom {
+  border-bottom: none;
+  border-top: 1px solid var(--lp-grid-line);
+  color: var(--lp-ink-dim);
+}
+
+.mesh3d-pulse-tag {
+  padding: 2px 8px;
+  background-color: var(--lp-sapphire);
+  color: var(--lp-jade);
+  font-weight: 800;
+}
+
+.mesh3d-canvas {
+  flex: 1;
+  width: 100%;
+  min-height: 430px;
+  display: block;
+  cursor: grab;
+  touch-action: none;
+}
+
+.mesh3d-grabbing {
+  cursor: grabbing;
+}
+
+/* ==========================================================================
+   KINETIC SAPPHIRE TICKER BAND
+   ========================================================================== */
+.lp-ticker {
+  overflow: hidden;
+  background-color: var(--lp-sapphire);
+  border-bottom: 2px solid var(--lp-ocean);
+  padding: 14px 0;
+}
+
+.lp-ticker-track {
+  display: flex;
+  width: max-content;
+  gap: 36px;
+  animation: lpMarquee 26s linear infinite;
+}
+
+.lp-ticker:hover .lp-ticker-track {
+  animation-play-state: paused;
+}
+
+.lp-ticker-item {
+  font-family: var(--lp-font-mono);
+  font-size: 0.84rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--lp-ink);
+  white-space: nowrap;
+}
+
+.lp-ticker-sep {
+  color: var(--lp-jade);
+  margin-left: 36px;
+}
+
+@keyframes lpMarquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+/* ==========================================================================
+   SHARED SECTION ARCHITECTURE
+   ========================================================================== */
+.lp-section {
+  padding: clamp(68px, 8vw, 124px) clamp(20px, 4vw, 56px);
+  border-bottom: 1px solid var(--lp-grid-line);
+}
+
+.lp-section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 24px;
+  flex-wrap: wrap;
+  margin-bottom: 44px;
+}
+
+.lp-h2 {
+  font-family: var(--lp-font-display);
+  font-weight: 800;
+  font-size: clamp(1.8rem, 3.6vw, 3.4rem);
+  line-height: 0.98;
+  letter-spacing: -0.03em;
+  text-transform: uppercase;
+  color: var(--lp-ink);
+  max-width: 20ch;
+}
+
+.lp-section-desc {
+  max-width: 46ch;
+  font-size: 1rem;
+  color: var(--lp-ink-dim);
+  line-height: 1.55;
+}
+
+/* ==========================================================================
+   SCRUBBED MANIFESTO BAND
+   ========================================================================== */
+.lp-manifesto {
+  background-color: var(--lp-surface);
+  padding: clamp(64px, 7vw, 108px) clamp(24px, 5vw, 72px);
+  border-bottom: 1px solid var(--lp-grid-line);
+}
+
+.lp-manifesto-text {
+  font-family: var(--lp-font-display);
+  font-weight: 800;
+  font-size: clamp(1.65rem, 3.6vw, 3.25rem);
+  line-height: 1.15;
+  letter-spacing: -0.025em;
+  max-width: 34ch;
+}
+
+.lp-scrub-word {
+  display: inline-block;
+  margin-right: 0.28em;
+  color: var(--lp-ink);
+}
+
+.lp-scrub-ocean {
+  color: var(--lp-ocean);
+}
+
+.lp-scrub-jade {
+  color: var(--lp-jade);
+}
+
+/* ==========================================================================
+   CHAPTER 2: INTERACTIVE 3D CVSS RISK PRISM
+   ========================================================================== */
+.prism-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
+  gap: 1px;
+  background-color: var(--lp-grid-line);
+  border: 1px solid var(--lp-grid-line);
+}
+
+.prism-controls {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  background-color: var(--lp-bg);
+}
+
+.prism-selector-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  background-color: var(--lp-grid-line);
+}
+
+.prism-option {
+  width: 100%;
+  text-align: left;
+  padding: 18px 20px;
+  background-color: var(--lp-surface);
+  color: var(--lp-ink);
+  border: none;
+  border-left: 4px solid transparent;
+  cursor: pointer;
+  font-family: var(--lp-font-body);
+  transition: background-color 180ms var(--lp-spring), border-color 180ms var(--lp-spring);
+}
+
+.prism-option:hover {
+  background-color: var(--lp-surface-2);
+}
+
+.prism-option-active {
+  background-color: rgba(0, 66, 172, 0.28);
+  border-left-color: var(--lp-ocean);
+}
+
+.prism-option-fault.prism-option-active {
+  background-color: rgba(255, 77, 121, 0.16);
+  border-left-color: var(--lp-fault);
+}
+
+.prism-option-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.74rem;
+  color: var(--lp-ocean);
+  margin-bottom: 6px;
+}
+
+.prism-option-fault .prism-option-top {
+  color: var(--lp-fault);
+}
+
+.prism-option-title {
+  font-size: 0.96rem;
+  font-weight: 700;
+  color: var(--lp-ink);
+}
+
+.prism-readout {
+  padding: 20px;
+  background-color: #070a12;
+  border-top: 1px solid var(--lp-grid-line);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.prism-readout-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.74rem;
+  color: var(--lp-ink-dim);
+}
+
+.prism-readout-row code {
+  color: var(--lp-ocean);
+  font-size: 0.8rem;
+  word-break: break-all;
+}
+
+.prism-verdict {
+  margin-top: 4px;
+  padding: 10px 12px;
+  background-color: var(--lp-jade);
+  color: var(--lp-jade-ink);
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+}
+
+.prism-readout-fault .prism-verdict {
+  background-color: var(--lp-fault);
+  color: #ffffff;
+}
+
+.prism-stage {
+  display: flex;
+  flex-direction: column;
+  background-color: #070a12;
+}
+
+.prism-stage-bar,
+.prism-stage-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 18px;
+  font-size: 0.74rem;
+  color: var(--lp-ink-dim);
+  background-color: var(--lp-surface);
+  border-bottom: 1px solid var(--lp-grid-line);
+}
+
+.prism-stage-footer {
+  border-bottom: none;
+  border-top: 1px solid var(--lp-grid-line);
+}
+
+.prism-score-pill {
+  padding: 3px 10px;
+  font-weight: 800;
+  font-size: 0.76rem;
+}
+
+.prism-canvas {
+  flex: 1;
+  width: 100%;
+  min-height: 360px;
+  display: block;
+  cursor: grab;
+  touch-action: none;
+}
+
+.brut-link {
+  color: var(--lp-jade);
+  font-size: 0.78rem;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.brut-link:hover {
+  color: var(--lp-ocean);
+  text-decoration: underline;
+}
+
+/* ==========================================================================
+   CHAPTER 3: 3D ISOMETRIC FLOATING VAULT STAGE (Inspired by Image 2)
+   ========================================================================== */
+.iso-stage-wrapper {
+  perspective: 1400px;
+  padding: 28px 0 36px;
+}
+
+.iso-stage-plane {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(260px, 310px) minmax(0, 1fr);
+  grid-template-rows: auto auto;
+  gap: 20px;
+  align-items: stretch;
+  transform-style: preserve-3d;
+  transition: transform 280ms var(--lp-spring);
+}
+
+.iso-card {
+  background-color: var(--lp-surface);
+  border: 1px solid var(--lp-grid-line);
+  padding: 22px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 14px;
+  transform-style: preserve-3d;
+  transition: border-color 200ms var(--lp-spring), transform 220ms var(--lp-spring);
+}
+
+.iso-card:hover {
+  border-color: var(--lp-ocean);
+}
+
+.iso-card-left {
+  grid-column: 1;
+  grid-row: 1 / span 2;
+  border-left: 4px solid var(--lp-sapphire);
+  transform: translateZ(34px);
+}
+
+.iso-phone-frame {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  background-color: #0d1220;
+  border: 2px solid var(--lp-ocean);
+  padding: 18px 16px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 14px;
+  transform: translateZ(62px);
+  box-shadow: 0 24px 55px rgba(0, 66, 172, 0.35);
+}
+
+.iso-card-right-top {
+  grid-column: 3;
+  grid-row: 1;
+  border-top: 3px solid var(--lp-ocean);
+  transform: translateZ(44px);
+}
+
+.iso-card-right-bottom {
+  grid-column: 3;
+  grid-row: 2;
+  border-bottom: 3px solid var(--lp-jade);
+  transform: translateZ(26px);
+}
+
+.iso-card-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--lp-ocean);
+}
+
+.iso-pill-jade {
+  padding: 2px 8px;
+  background-color: var(--lp-jade);
+  color: var(--lp-jade-ink);
+  font-weight: 800;
+}
+
+.iso-card-title {
+  font-family: var(--lp-font-display);
+  font-size: 1.7rem;
+  line-height: 1.05;
+  text-transform: uppercase;
+}
+
+.iso-card-copy {
+  font-size: 0.92rem;
+  color: var(--lp-ink-dim);
+  line-height: 1.55;
+}
+
+.iso-card-copy strong,
+.iso-card-copy code {
+  color: var(--lp-ink);
+}
+
+.iso-metric-pair {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1px;
+  background-color: var(--lp-grid-line);
+  border: 1px solid var(--lp-grid-line);
+}
+
+.iso-metric-pair > div {
+  background-color: #0a0e19;
+  padding: 12px;
+}
+
+.iso-metric-pair span {
+  display: block;
+  font-size: 0.68rem;
+  color: var(--lp-ink-dim);
+}
+
+.iso-metric-pair strong {
+  display: block;
+  margin-top: 4px;
+  font-size: 1.35rem;
+  color: var(--lp-jade);
+}
+
+/* Mobile Obsidian Frame Inner Details */
+.iso-phone-notch {
+  width: 64px;
+  height: 5px;
+  margin: 0 auto 4px;
+  background-color: #1f2b46;
+}
+
+.iso-phone-header {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.68rem;
+  color: var(--lp-ink-dim);
+}
+
+.iso-dot-jade {
+  color: var(--lp-jade);
+  font-weight: 800;
+}
+
+.iso-phone-ring-wrap {
+  position: relative;
+  width: 138px;
+  height: 138px;
+  margin: 6px auto;
+}
+
+.iso-ring-svg {
+  width: 100%;
+  height: 100%;
+}
+
+.iso-ring-center {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.iso-ring-center strong {
+  font-size: 1.85rem;
+  line-height: 1;
+  color: var(--lp-ink);
+}
+
+.iso-ring-center span {
+  font-size: 0.68rem;
+  color: var(--lp-ocean);
+  margin-top: 4px;
+}
+
+.iso-phone-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.iso-phone-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 10px;
+  background-color: var(--lp-surface-2);
+  border: 1px solid var(--lp-grid-line);
+  font-size: 0.72rem;
+}
+
+.iso-phone-cta {
+  display: block;
+  text-align: center;
+  padding: 11px 12px;
+  background-color: var(--lp-sapphire);
+  color: var(--lp-ink);
+  border: 1px solid var(--lp-ocean);
+  font-size: 0.74rem;
+  font-weight: 800;
+  text-decoration: none;
+  transition: background-color 180ms var(--lp-spring);
+}
+
+.iso-phone-cta:hover {
+  background-color: var(--lp-ocean);
+  color: var(--lp-jade-ink);
+}
+
+/* Lifecycle Steps Inside 3D Card */
+.iso-steps-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.iso-step-btn {
+  padding: 10px;
+  background-color: #0a0e19;
+  border: 1px solid var(--lp-grid-line);
+  color: var(--lp-ink-dim);
+  text-align: left;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  transition: border-color 160ms var(--lp-spring), background-color 160ms var(--lp-spring);
+}
+
+.iso-step-btn span {
+  font-size: 0.74rem;
+  font-weight: 800;
+  color: var(--lp-ink);
+}
+
+.iso-step-btn small {
+  font-size: 0.66rem;
+}
+
+.iso-step-active {
+  background-color: var(--lp-sapphire);
+  border-color: var(--lp-jade);
+  color: var(--lp-jade);
+}
+
+.iso-card-foot {
+  font-size: 0.74rem;
+  color: var(--lp-ink-dim);
+}
+
+.iso-psp-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.iso-psp-grid > div {
+  padding: 10px;
+  background-color: #0a0e19;
+  border: 1px solid var(--lp-grid-line);
+}
+
+.iso-psp-grid strong {
+  display: block;
+  font-size: 1.35rem;
+  color: var(--lp-ocean);
+}
+
+.iso-psp-grid span {
+  display: block;
+  font-size: 0.66rem;
+  color: var(--lp-ink-dim);
+  margin-top: 3px;
+}
+
+/* ==========================================================================
+   CHAPTER 4: GAPLESS 12-COLUMN BRUTALIST BENTO GRID
+   ========================================================================== */
+.brut-bento {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  grid-auto-flow: dense;
+  gap: 1px;
+  background-color: var(--lp-grid-line);
+  border: 1px solid var(--lp-grid-line);
+}
+
+.brut-cell {
+  background-color: var(--lp-surface);
+  padding: 28px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 16px;
+  transition: background-color 200ms var(--lp-spring);
+}
+
+.brut-cell:hover {
+  background-color: var(--lp-surface-2);
+}
+
+.brut-cell-sapphire {
+  background-color: var(--lp-sapphire);
+  color: var(--lp-ink);
+}
+
+.brut-cell-sapphire:hover {
+  background-color: #084ec2;
+}
+
+.brut-span-7-r2 {
+  grid-column: span 7;
+  grid-row: span 2;
+}
+
+.brut-span-5 {
+  grid-column: span 5;
+}
+
+.brut-span-4 {
+  grid-column: span 4;
+}
+
+.brut-cell-tag {
+  font-family: var(--lp-font-mono);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--lp-ocean);
+}
+
+.brut-cell-sapphire .brut-cell-tag {
+  color: var(--lp-jade);
+}
+
+.brut-cell-title {
+  font-family: var(--lp-font-display);
+  font-size: clamp(1.25rem, 2.2vw, 2rem);
+  line-height: 1.05;
+  text-transform: uppercase;
+}
+
+.brut-cell-copy {
+  font-size: 0.94rem;
+  color: var(--lp-ink-dim);
+  line-height: 1.55;
+}
+
+.brut-cell-sapphire .brut-cell-copy {
+  color: #dbeafe;
+}
+
+.brut-chain-flow {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.brut-chain-node {
+  padding: 12px;
+  background-color: rgba(9, 12, 20, 0.65);
+  border: 1px solid var(--lp-ocean);
+  font-family: var(--lp-font-mono);
+}
+
+.brut-chain-node small {
+  display: block;
+  font-size: 0.66rem;
+  color: var(--lp-jade);
+}
+
+.brut-chain-node strong {
+  display: block;
+  margin-top: 4px;
+  font-size: 0.84rem;
+  color: var(--lp-ink);
+}
+
+/* ==========================================================================
+   CHAPTER 5: HORIZONTAL BRUTALIST BLADE ACCORDION
+   ========================================================================== */
+.blade-accordion {
+  display: flex;
+  min-height: 410px;
+  border: 1px solid var(--lp-grid-line);
+  background-color: var(--lp-grid-line);
+  gap: 1px;
+}
+
+.blade-item {
+  position: relative;
+  display: flex;
+  flex: 1 1 0%;
+  background-color: var(--lp-surface);
+  overflow: hidden;
+  transition: flex 460ms var(--lp-spring), background-color 240ms ease;
+}
+
+.blade-open {
+  flex: 4.2 1 0%;
+  background-color: #0d1323;
+}
+
+.blade-trigger {
+  width: 78px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 10px;
+  background-color: var(--lp-surface);
+  border: none;
+  border-right: 1px solid var(--lp-grid-line);
+  color: var(--lp-ink);
+  cursor: pointer;
+}
+
+.blade-open.blade-accent-sapphire .blade-trigger {
+  background-color: var(--lp-sapphire);
+  color: var(--lp-ink);
+}
+
+.blade-open.blade-accent-ocean .blade-trigger {
+  background-color: var(--lp-ocean);
+  color: var(--lp-jade-ink);
+}
+
+.blade-open.blade-accent-jade .blade-trigger {
+  background-color: var(--lp-jade);
+  color: var(--lp-jade-ink);
+}
+
+.blade-code {
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-align: center;
+}
+
+.blade-vertical-title {
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  font-family: var(--lp-font-display);
+  font-weight: 800;
+  font-size: 1.15rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.blade-content {
+  padding: 28px 32px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 16px;
+  min-width: 340px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 260ms ease;
+}
+
+.blade-open .blade-content {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.blade-module-chip {
+  font-size: 0.74rem;
+  font-weight: 800;
+  color: var(--lp-ocean);
+  letter-spacing: 0.08em;
+}
+
+.blade-heading {
+  font-family: var(--lp-font-display);
+  font-size: clamp(1.35rem, 2.3vw, 2.05rem);
+  line-height: 1.05;
+  text-transform: uppercase;
+}
+
+.blade-summary {
+  font-size: 0.95rem;
+  color: var(--lp-ink-dim);
+  line-height: 1.55;
+  max-width: 56ch;
+}
+
+.blade-specs {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.78rem;
+  color: var(--lp-jade);
+}
+
+.blade-cta {
+  align-self: flex-start;
+  padding: 10px 16px;
+  background-color: var(--lp-sapphire);
+  color: var(--lp-ink);
+  border: 1px solid var(--lp-ocean);
+  font-size: 0.76rem;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.blade-cta:hover {
+  background-color: var(--lp-jade);
+  color: var(--lp-jade-ink);
+  border-color: var(--lp-jade);
+}
+
+/* ==========================================================================
+   CHAPTER 6: MONUMENTAL CLOSING ACTION FIELD & GIANT WORDMARK FOOTER
+   ========================================================================== */
+.lp-closing {
+  background-color: var(--lp-sapphire);
+  border-bottom: 2px solid var(--lp-ocean);
+  padding: clamp(72px, 9vw, 130px) clamp(24px, 4vw, 56px);
+}
+
+.lp-closing-inner {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 32px;
+  flex-wrap: wrap;
+}
+
+.lp-closing-h2 {
+  font-family: var(--lp-font-display);
+  font-weight: 800;
+  font-size: clamp(2.1rem, 4.3vw, 4.1rem);
+  line-height: 0.95;
+  letter-spacing: -0.03em;
+  text-transform: uppercase;
+  color: var(--lp-ink);
+  max-width: 18ch;
+}
+
+.lp-footer {
+  background-color: #06080f;
+  padding: 40px clamp(24px, 4vw, 56px) 24px;
+}
+
+.lp-footer-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 24px;
+  flex-wrap: wrap;
+  padding-bottom: 32px;
+  border-bottom: 1px solid var(--lp-grid-line);
+}
+
+.lp-footer-links {
+  display: flex;
+  gap: 18px;
+  flex-wrap: wrap;
+}
+
+.lp-footer-links a {
+  font-family: var(--lp-font-mono);
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--lp-ink-dim);
+  text-decoration: none;
+  text-transform: uppercase;
+}
+
+.lp-footer-links a:hover {
+  color: var(--lp-jade);
+}
+
+.lp-footer-wordmark {
+  margin-top: 22px;
+  font-family: var(--lp-font-display);
+  font-weight: 800;
+  font-size: clamp(1.7rem, 6.1vw, 6.1rem);
+  line-height: 0.92;
+  letter-spacing: -0.035em;
+  text-transform: uppercase;
+  color: var(--lp-surface-2);
+  user-select: none;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+/* ==========================================================================
+   RESPONSIVE BREAKPOINTS (Zero overflow at 1280px, 768px & 390px)
+   ========================================================================== */
+@media (max-width: 1120px) {
+  .lp-hero {
+    grid-template-columns: 1fr;
+  }
+  .lp-hero-left {
+    border-right: none;
+    border-bottom: 1px solid var(--lp-grid-line);
+  }
+  .prism-grid {
+    grid-template-columns: 1fr;
+  }
+  .iso-stage-plane {
+    grid-template-columns: 1fr;
+    transform: none !important;
+  }
+  .iso-card-left,
+  .iso-phone-frame,
+  .iso-card-right-top,
+  .iso-card-right-bottom {
+    grid-column: 1;
+    grid-row: auto;
+    transform: none;
+  }
+  .brut-span-7-r2,
+  .brut-span-5,
+  .brut-span-4 {
+    grid-column: span 12;
+    grid-row: span 1;
+  }
+  .blade-accordion {
+    flex-direction: column;
+    min-height: auto;
+  }
+  .blade-item,
+  .blade-open {
+    flex: none;
+    flex-direction: column;
+  }
+  .blade-trigger {
+    width: 100%;
+    flex-direction: row;
+    border-right: none;
+    border-bottom: 1px solid var(--lp-grid-line);
+    padding: 14px 18px;
+  }
+  .blade-vertical-title {
+    writing-mode: horizontal-tb;
+    transform: none;
+  }
+  .blade-content {
+    display: none;
+    min-width: 0;
+  }
+  .blade-open .blade-content {
+    display: flex;
+  }
+}
+
+@media (max-width: 768px) {
+  .lp-nav {
+    grid-template-columns: 1fr auto;
+  }
+  .lp-nav-links {
+    display: none;
+  }
+  .lp-hero-foot-strip {
+    grid-template-columns: 1fr;
+  }
+  .brut-chain-flow {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lp-ticker-track {
+    animation: none;
+  }
+  .iso-stage-plane {
+    transform: none !important;
+  }
+}

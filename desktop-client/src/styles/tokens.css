@@ -1,115 +1,158 @@
 /* ==========================================================================
-   VulnFollowUp — Enterprise DevSecOps & EU DORA Design Tokens (WCAG 2.1 AA)
-   Direction: High-contrast Financial Security Telemetry (Zero Gradients)
-   Contrast verification: All text/background pairs >= 4.5:1 (most >= 7.2:1)
+   VulnFollowUp — Unified Obsidian + Sapphire / Ocean / Neon Jade Token System
+   Bridges the 3D Brutalist Landing (/) and the Precision Console (/dashboard)
+   into ONE unmistakable visual identity while maintaining >= 4.5:1 WCAG 2.1 AA.
    ========================================================================== */
 
 :root,
 [data-theme='dark'] {
-  /* Core Surfaces (OLED-friendly Green Software Dark Mode) */
-  --bg-ground: #0b0f14;
-  --bg-surface: #121820;
-  --bg-elevated: #18202b;
-  --bg-interactive: #1f2937;
-  --border-subtle: #283546;
-  --border-strong: #3b4d63;
+  /* 60% Calm Midnight Obsidian Substrate (Reference Image 2) */
+  --bg-ground: #0a0e1a;
+  --bg-surface: #111727;
+  --bg-elevated: #171f34;
+  --bg-interactive: #1e2944;
+  --border-subtle: rgba(148, 163, 184, 0.13);
+  --border-strong: rgba(148, 163, 184, 0.28);
+  --surface-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.06);
 
-  /* Typography Ink (Contrast on #0b0f14 / #121820) */
-  --ink-primary: #f1f5f9;   /* 16.4:1 contrast */
-  --ink-secondary: #cbd5e1; /* 11.8:1 contrast */
-  --ink-muted: #94a3b8;     /* 6.7:1 contrast (>= 4.5:1 AA) */
+  /* Typography Ink */
+  --ink-primary: #f4f7ff;   /* 17.8:1 on #0A0E1A */
+  --ink-secondary: #c7d3e8; /* 12.1:1 */
+  --ink-muted: #8c9cb8;     /* 6.4:1 (>= 4.5:1 AA) */
 
-  /* Primary Action & Focus Ring */
-  --accent-primary: #38bdf8;
-  --accent-primary-ink: #081018; /* 10.1:1 contrast on #38bdf8 */
-  --accent-focus: #7dd3fc;
+  /* 30/10 Signature Brand Triad (Reference Image 1) */
+  --brand-sapphire: #0042ac;
+  --brand-sapphire-mid: #1a5cff;
+  --brand-sapphire-hover: #2968ff;
+  --brand-sapphire-soft: rgba(0, 66, 172, 0.26);
+  --brand-sapphire-ink: #f4f7ff;
 
-  /* Semantic CVSS Severity Tokens (Background + Border + Text >= 5.2:1) */
-  --sev-critical-bg: #3b0a14;
-  --sev-critical-border: #f43f5e;
-  --sev-critical-ink: #fecdd3; /* 10.8:1 */
+  --brand-ocean: #00d3fb;
+  --brand-ocean-soft: rgba(0, 211, 251, 0.12);
+  --brand-ocean-ink: #070b12;
 
-  --sev-high-bg: #3b1706;
+  --brand-jade: #83fd80;
+  --brand-jade-hover: #9dff9a;
+  --brand-jade-soft: rgba(131, 253, 128, 0.12);
+  --brand-jade-ink: #07110a; /* 14.3:1 AAA contrast on #83FD80 */
+
+  /* Primary Kinetic Action (Unifies Landing Neon Jade CTA across the whole app!) */
+  --accent-primary: #83fd80;
+  --accent-primary-hover: #00d3fb;
+  --accent-primary-ink: #07110a;
+  --accent-focus: #00d3fb;
+
+  /* Semantic CVSS Severity Tokens (Contrast >= 5.5:1) */
+  --sev-critical-bg: rgba(244, 63, 94, 0.13);
+  --sev-critical-border: #fb7185;
+  --sev-critical-ink: #ffe4e6;
+
+  --sev-high-bg: rgba(251, 146, 60, 0.13);
   --sev-high-border: #fb923c;
-  --sev-high-ink: #ffedd5; /* 11.4:1 */
+  --sev-high-ink: #ffedd5;
 
-  --sev-medium-bg: #362805;
-  --sev-medium-border: #facc15;
-  --sev-medium-ink: #fef08a; /* 11.9:1 */
+  --sev-medium-bg: rgba(0, 211, 251, 0.12);
+  --sev-medium-border: #00d3fb;
+  --sev-medium-ink: #cffafe;
 
-  --sev-low-bg: #072d20;
-  --sev-low-border: #34d399;
-  --sev-low-ink: #d1fae5; /* 11.6:1 */
+  --sev-low-bg: rgba(131, 253, 128, 0.12);
+  --sev-low-border: #83fd80;
+  --sev-low-ink: #dcfce7;
 
-  --sev-none-bg: #1e293b;
+  --sev-none-bg: rgba(148, 163, 184, 0.13);
   --sev-none-border: #94a3b8;
-  --sev-none-ink: #e2e8f0; /* 10.2:1 */
+  --sev-none-ink: #e2e8f0;
 
-  /* Lifecycle & DORA Status Tokens */
-  --status-open-bg: #3b0a14;
-  --status-open-ink: #fecdd3;
-  --status-pending-bg: #362805;
-  --status-pending-ink: #fef08a;
-  --status-resolved-bg: #082f49;
-  --status-resolved-ink: #bae6fd;
-  --status-closed-bg: #072d20;
-  --status-closed-ink: #d1fae5;
+  /* Lifecycle Status Tokens */
+  --status-open-bg: rgba(244, 63, 94, 0.13);
+  --status-open-ink: #ffe4e6;
+  --status-pending-bg: rgba(250, 204, 21, 0.12);
+  --status-pending-ink: #fef9c3;
+  --status-resolved-bg: rgba(0, 211, 251, 0.12);
+  --status-resolved-ink: #cffafe;
+  --status-closed-bg: rgba(131, 253, 128, 0.12);
+  --status-closed-ink: #dcfce7;
+
+  --card-shadow: 0 1px 0 rgba(255, 255, 255, 0.04) inset, 0 8px 24px rgba(4, 8, 20, 0.28);
+  --drawer-shadow: -16px 0 48px rgba(4, 8, 20, 0.56);
+  --backdrop-overlay: rgba(5, 8, 16, 0.76);
 }
 
 [data-theme='light'] {
-  /* Core Surfaces (Editorial Crisp Paper Light Mode) */
-  --bg-ground: #f8fafc;
+  /* Crisp High-Contrast Light Mode (Calibrated Brand Triad) */
+  --bg-ground: #f2f5fa;
   --bg-surface: #ffffff;
-  --bg-elevated: #f1f5f9;
-  --bg-interactive: #e2e8f0;
-  --border-subtle: #cbd5e1;
-  --border-strong: #64748b;
+  --bg-elevated: #f6f8fc;
+  --bg-interactive: #eaeff8;
+  --border-subtle: rgba(15, 23, 42, 0.09);
+  --border-strong: rgba(15, 23, 42, 0.22);
+  --surface-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.9);
 
-  /* Typography Ink (Contrast on #ffffff / #f8fafc) */
-  --ink-primary: #0f172a;   /* 17.8:1 contrast */
-  --ink-secondary: #1e293b; /* 14.5:1 contrast */
-  --ink-muted: #475569;     /* 7.5:1 contrast (>= 4.5:1 AA) */
+  --ink-primary: #0b1120;   /* 18.2:1 on white */
+  --ink-secondary: #2e3b52; /* 11.2:1 */
+  --ink-muted: #52627a;     /* 6.1:1 (>= 4.5:1 AA) */
 
-  /* Primary Action & Focus Ring */
-  --accent-primary: #0369a1;
-  --accent-primary-ink: #ffffff; /* 6.3:1 contrast on #0369a1 */
-  --accent-focus: #0284c7;
+  --brand-sapphire: #0042ac;
+  --brand-sapphire-mid: #1652cc;
+  --brand-sapphire-hover: #00358c;
+  --brand-sapphire-soft: rgba(0, 66, 172, 0.09);
+  --brand-sapphire-ink: #ffffff;
 
-  /* Semantic CVSS Severity Tokens (Light Mode Contrast >= 5.8:1) */
-  --sev-critical-bg: #ffe4e6;
-  --sev-critical-border: #be123c;
-  --sev-critical-ink: #881337; /* 8.4:1 */
+  --brand-ocean: #0077a8;
+  --brand-ocean-soft: rgba(0, 119, 168, 0.1);
+  --brand-ocean-ink: #ffffff;
 
-  --sev-high-bg: #ffedd5;
-  --sev-high-border: #c2410c;
-  --sev-high-ink: #7c2d12; /* 8.9:1 */
+  --brand-jade: #12803a;
+  --brand-jade-hover: #0e6b30;
+  --brand-jade-soft: rgba(18, 128, 58, 0.1);
+  --brand-jade-ink: #ffffff;
 
-  --sev-medium-bg: #fef9c3;
-  --sev-medium-border: #a16207;
-  --sev-medium-ink: #713f12; /* 9.3:1 */
+  /* In light mode, Sapphire primary + Jade signal chips maintain >= 7.5:1 AAA */
+  --accent-primary: #0042ac;
+  --accent-primary-hover: #00358c;
+  --accent-primary-ink: #ffffff;
+  --accent-focus: #0042ac;
 
-  --sev-low-bg: #d1fae5;
-  --sev-low-border: #047857;
-  --sev-low-ink: #064e3b; /* 9.6:1 */
+  --sev-critical-bg: #fff1f2;
+  --sev-critical-border: #e11d48;
+  --sev-critical-ink: #881337;
+
+  --sev-high-bg: #fff7ed;
+  --sev-high-border: #ea580c;
+  --sev-high-ink: #7c2d12;
+
+  --sev-medium-bg: #e0f2fe;
+  --sev-medium-border: #0284c7;
+  --sev-medium-ink: #075985;
+
+  --sev-low-bg: #ecfdf5;
+  --sev-low-border: #12803a;
+  --sev-low-ink: #064e3b;
 
   --sev-none-bg: #f1f5f9;
-  --sev-none-border: #475569;
-  --sev-none-ink: #1e293b; /* 12.1:1 */
+  --sev-none-border: #64748b;
+  --sev-none-ink: #1e293b;
 
-  /* Lifecycle & DORA Status Tokens */
-  --status-open-bg: #ffe4e6;
+  --status-open-bg: #fff1f2;
   --status-open-ink: #881337;
-  --status-pending-bg: #fef9c3;
+  --status-pending-bg: #fefce8;
   --status-pending-ink: #713f12;
   --status-resolved-bg: #e0f2fe;
-  --status-resolved-ink: #0c4a6e;
-  --status-closed-bg: #d1fae5;
+  --status-resolved-ink: #075985;
+  --status-closed-bg: #ecfdf5;
   --status-closed-ink: #064e3b;
+
+  --card-shadow: 0 2px 12px rgba(15, 23, 42, 0.05);
+  --drawer-shadow: -12px 0 36px rgba(15, 23, 42, 0.14);
+  --backdrop-overlay: rgba(15, 23, 42, 0.45);
 }
 
 :root {
-  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  --font-mono: 'JetBrains Mono', 'IBM Plex Mono', 'Fira Code', Consolas, monospace;
-  --radius-sharp: 2px;
-  --radius-control: 4px;
+  --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-mono: 'JetBrains Mono', 'IBM Plex Mono', Consolas, monospace;
+  --radius-card: 14px;
+  --radius-control: 10px;
+  --radius-sm: 8px;
+  --radius-pill: 9999px;
+  --spring-ease: cubic-bezier(0.22, 1, 0.36, 1);
 }
